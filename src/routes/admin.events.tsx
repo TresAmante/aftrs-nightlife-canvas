@@ -50,9 +50,9 @@ function AdminEvents() {
             className="grid gap-2 border-t border-border bg-surface/40 px-6 py-4 transition-colors hover:bg-surface-2/60 lg:grid-cols-[1.8fr_1fr_1fr_0.9fr_0.8fr] lg:items-center lg:gap-4"
           >
             <div className="min-w-0">
-              <p className="truncate font-semibold">{e.title}</p>
+              <p className="truncate font-semibold">{e.name}</p>
               <p className="truncate text-xs text-muted-foreground">
-                {e.venue} · from {money(e.priceFrom)}
+                {e.venue} · from {money(e.price)}
               </p>
             </div>
             <p className="text-sm text-muted-foreground">{e.city}</p>
@@ -61,7 +61,7 @@ function AdminEvents() {
               {e.sold.toLocaleString()} / {e.capacity.toLocaleString()}
             </p>
             <div className="lg:flex lg:justify-end">
-              <StatusBadge status={e.sold >= e.capacity ? "Sold out" : "Published"} />
+              <StatusBadge status={e.status} />
             </div>
           </div>
         ))}
