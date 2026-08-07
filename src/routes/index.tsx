@@ -5,12 +5,11 @@ import { useRef } from "react";
 
 import heroImg from "@/assets/hero.jpg";
 import { Aurora } from "@/components/site/Aurora";
-import { EventCard } from "@/components/site/EventCard";
 import { Reveal, Stagger, StaggerItem } from "@/components/site/Reveal";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { StatusBadge } from "@/components/site/StatusBadge";
 import { Button } from "@/components/ui/button";
-import { events, formatDate, formatDay, formatMonth } from "@/lib/mock-data";
+import { events, formatDate, formatDay, formatMonth, type EventItem } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -314,7 +313,8 @@ function Home() {
   );
 }
 
-function FeatureTile({ event, tall = false }: { event: (typeof events)[number]; tall?: boolean }) {
+function FeatureTile({ event, tall = false }: { event?: EventItem; tall?: boolean }) {
+  if (!event) return null;
   return (
     <Link
       to="/events/$eventId"
