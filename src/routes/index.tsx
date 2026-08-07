@@ -313,7 +313,7 @@ function Home() {
   );
 }
 
-function FeatureTile({ event, tall = false }: { event?: EventItem; tall?: boolean }) {
+function FeatureTile({ event, tall = false }: { event: EventItem | undefined; tall?: boolean }) {
   if (!event) return null;
   return (
     <Link
