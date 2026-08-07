@@ -152,7 +152,7 @@ function EventDetail() {
               Lineup
             </h3>
             <div className="mt-6 flex flex-wrap gap-2.5">
-              {event.lineup.map((a, i) => (
+              {event.lineup.map((a: string, i: number) => (
                 <span
                   key={a}
                   className={cn(
