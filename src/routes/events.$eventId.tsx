@@ -14,6 +14,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { Aurora } from "@/components/site/Aurora";
+import { CheckoutDialog } from "@/components/site/CheckoutDialog";
 import { Reveal, Stagger, StaggerItem } from "@/components/site/Reveal";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { StatusBadge } from "@/components/site/StatusBadge";
@@ -322,17 +323,35 @@ function EventDetail() {
                 size="lg"
                 className="mt-2 w-full"
                 disabled={event.status === "Sold out"}
+                onClick={() => setCheckout(true)}
+              >
+                {event.status === "Sold out" ? "Sold out" : "Pay with GCash or bank"}
+              </Button>
+              <Button
+                variant="glass"
+                size="sm"
+                className="w-full"
+                disabled={event.status === "Sold out"}
                 onClick={() =>
                   toast.success("Added to your basket", {
                     description: `${qty} × ${selected.name} · ${event.name}`,
                   })
                 }
               >
-                {event.status === "Sold out" ? "Sold out" : "Reserve tickets"}
+                Save for later
               </Button>
               <p className="text-center text-[0.7rem] text-muted-foreground">
-                Prototype only — no payment is taken.
+                GCash · InstaPay · PESONet — prototype only, no payment is taken.
               </p>
+
+              <CheckoutDialog
+                open={checkout}
+                onOpenChange={setCheckout}
+                eventName={event.name}
+                tier={selected.name}
+                qty={qty}
+                total={selected.price * qty}
+              />
             </div>
           </Reveal>
         </aside>
