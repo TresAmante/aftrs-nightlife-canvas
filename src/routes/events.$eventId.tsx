@@ -71,6 +71,7 @@ function EventDetail() {
   const { event } = Route.useLoaderData();
   const [tier, setTier] = useState(tiers[1]!.name);
   const [qty, setQty] = useState(2);
+  const [checkout, setCheckout] = useState(false);
   const selected = tiers.find((t) => t.name === tier)!;
   const related = events.filter((e) => e.id !== event.id).slice(0, 3);
 
