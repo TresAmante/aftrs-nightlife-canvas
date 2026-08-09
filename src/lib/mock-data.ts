@@ -260,12 +260,12 @@ export type Purchase = {
 };
 
 export const purchases: Purchase[] = [
-  { id: "TRX-100482", date: "2026-08-02", event: "Midnight Frequency", method: "Visa ·· 4412", amount: 15300, status: "Paid" },
-  { id: "TRX-100455", date: "2026-07-28", event: "Skyline Sessions", method: "Apple Pay", amount: 6600, status: "Paid" },
-  { id: "TRX-100431", date: "2026-07-19", event: "Golden Hour", method: "Mastercard ·· 8890", amount: 48800, status: "Pending" },
-  { id: "TRX-100388", date: "2026-06-30", event: "Red Room", method: "Visa ·· 4412", amount: 7200, status: "Refunded" },
-  { id: "TRX-100341", date: "2026-06-11", event: "Velvet Lounge", method: "PayPal", amount: 16400, status: "Paid" },
-  { id: "TRX-100302", date: "2026-05-24", event: "Afterlight Arena", method: "Visa ·· 4412", amount: 19800, status: "Failed" },
+  { id: "TRX-100482", date: "2026-08-02", event: "Midnight Frequency", method: "GCash ·· 0917", amount: 15300, status: "Paid" },
+  { id: "TRX-100455", date: "2026-07-28", event: "Skyline Sessions", method: "GCash ·· 0928", amount: 6600, status: "Paid" },
+  { id: "TRX-100431", date: "2026-07-19", event: "Golden Hour", method: "BPI transfer ·· 4412", amount: 48800, status: "Pending" },
+  { id: "TRX-100388", date: "2026-06-30", event: "Red Room", method: "GCash ·· 0917", amount: 7200, status: "Refunded" },
+  { id: "TRX-100341", date: "2026-06-11", event: "Velvet Lounge", method: "Maya ·· 0995", amount: 16400, status: "Paid" },
+  { id: "TRX-100302", date: "2026-05-24", event: "Afterlight Arena", method: "GCash ·· 0917", amount: 19800, status: "Failed" },
 ];
 
 export type AdminUser = {
