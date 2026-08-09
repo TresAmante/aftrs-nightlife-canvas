@@ -40,8 +40,8 @@ export const events: EventItem[] = [
     city: "Kuala Lumpur",
     venue: "The Vault KL",
     address: "18 Jalan Sultan Ismail, Bukit Bintang",
-    price: 89,
-    currency: "$",
+    price: 4900,
+    currency: "₱",
     image: ev1,
     genre: "Techno",
     lineup: ["AMELIE LENS", "KØDE", "Nari Sun", "Vex b2b Halo"],
@@ -62,8 +62,8 @@ export const events: EventItem[] = [
     city: "Singapore",
     venue: "Aurora Rooftop",
     address: "1 Marina Boulevard, Level 47",
-    price: 120,
-    currency: "$",
+    price: 6600,
+    currency: "₱",
     image: ev2,
     genre: "Deep House",
     lineup: ["Jayda G", "Mall Grab", "Sotto Voce"],
@@ -84,8 +84,8 @@ export const events: EventItem[] = [
     city: "Bangkok",
     venue: "Sub Basement 9",
     address: "9 Soi Sukhumvit 11",
-    price: 65,
-    currency: "$",
+    price: 3600,
+    currency: "₱",
     image: ev3,
     genre: "Hard Techno",
     lineup: ["I Hate Models", "Ceza", "NOIR"],
@@ -105,8 +105,8 @@ export const events: EventItem[] = [
     city: "Bali",
     venue: "Pantai Selatan",
     address: "Jl. Pantai Berawa, Canggu",
-    price: 95,
-    currency: "$",
+    price: 5200,
+    currency: "₱",
     image: ev4,
     genre: "Disco",
     lineup: ["Horse Meat Disco", "Sofia Kourtesis", "Bamboo Sound"],
@@ -127,8 +127,8 @@ export const events: EventItem[] = [
     city: "Hong Kong",
     venue: "Salon Noir",
     address: "22 Hollywood Road, Central",
-    price: 150,
-    currency: "$",
+    price: 8200,
+    currency: "₱",
     image: ev5,
     genre: "Jazz / Downtempo",
     lineup: ["Yussef Dayes", "Kaidi Tatham", "Resident: Mira"],
@@ -148,8 +148,8 @@ export const events: EventItem[] = [
     city: "Kuala Lumpur",
     venue: "Axiata Arena",
     address: "Jalan Barat, Bukit Jalil",
-    price: 180,
-    currency: "$",
+    price: 9900,
+    currency: "₱",
     image: ev6,
     genre: "Electronic",
     lineup: ["Eric Prydz", "Charlotte de Witte", "ANYMA", "Peggy Gou"],
@@ -182,20 +182,20 @@ export type TicketTier = {
 export const tiers: TicketTier[] = [
   {
     name: "General",
-    price: 89,
+    price: 4900,
     perks: ["Standard entry from 23:00", "Main room access", "Digital wallet ticket"],
     left: 42,
   },
   {
     name: "Priority",
-    price: 139,
+    price: 7600,
     perks: ["Skip-the-line entry", "Mezzanine access", "Welcome drink", "Cloakroom included"],
     left: 18,
     highlight: true,
   },
   {
     name: "Table / 6 pax",
-    price: 890,
+    price: 48800,
     perks: ["Reserved booth", "Two bottles", "Dedicated host", "Private entrance"],
     left: 4,
   },
@@ -260,12 +260,12 @@ export type Purchase = {
 };
 
 export const purchases: Purchase[] = [
-  { id: "TRX-100482", date: "2026-08-02", event: "Midnight Frequency", method: "Visa ·· 4412", amount: 278, status: "Paid" },
-  { id: "TRX-100455", date: "2026-07-28", event: "Skyline Sessions", method: "Apple Pay", amount: 120, status: "Paid" },
-  { id: "TRX-100431", date: "2026-07-19", event: "Golden Hour", method: "Mastercard ·· 8890", amount: 890, status: "Pending" },
-  { id: "TRX-100388", date: "2026-06-30", event: "Red Room", method: "Visa ·· 4412", amount: 130, status: "Refunded" },
-  { id: "TRX-100341", date: "2026-06-11", event: "Velvet Lounge", method: "PayPal", amount: 300, status: "Paid" },
-  { id: "TRX-100302", date: "2026-05-24", event: "Afterlight Arena", method: "Visa ·· 4412", amount: 360, status: "Failed" },
+  { id: "TRX-100482", date: "2026-08-02", event: "Midnight Frequency", method: "GCash ·· 0917", amount: 15300, status: "Paid" },
+  { id: "TRX-100455", date: "2026-07-28", event: "Skyline Sessions", method: "GCash ·· 0928", amount: 6600, status: "Paid" },
+  { id: "TRX-100431", date: "2026-07-19", event: "Golden Hour", method: "BPI transfer ·· 4412", amount: 48800, status: "Pending" },
+  { id: "TRX-100388", date: "2026-06-30", event: "Red Room", method: "GCash ·· 0917", amount: 7200, status: "Refunded" },
+  { id: "TRX-100341", date: "2026-06-11", event: "Velvet Lounge", method: "Maya ·· 0995", amount: 16400, status: "Paid" },
+  { id: "TRX-100302", date: "2026-05-24", event: "Afterlight Arena", method: "GCash ·· 0917", amount: 19800, status: "Failed" },
 ];
 
 export type AdminUser = {
@@ -281,13 +281,13 @@ export type AdminUser = {
 };
 
 export const adminUsers: AdminUser[] = [
-  { id: "U-8812", name: "Amara Devi", email: "amara.d@mail.com", city: "Kuala Lumpur", tier: "Founding", orders: 24, spend: 4820, joined: "2024-02-11", status: "Active" },
-  { id: "U-8790", name: "Théo Marchand", email: "theo.m@mail.com", city: "Singapore", tier: "Priority", orders: 12, spend: 2140, joined: "2024-06-02", status: "Active" },
-  { id: "U-8744", name: "Ren Takahashi", email: "ren.t@mail.com", city: "Bangkok", tier: "Member", orders: 4, spend: 460, joined: "2025-01-19", status: "Invited" },
-  { id: "U-8701", name: "Sofia Ibrahim", email: "sofia.i@mail.com", city: "Bali", tier: "Priority", orders: 9, spend: 1610, joined: "2025-03-08", status: "Active" },
-  { id: "U-8666", name: "Marcus Well", email: "m.well@mail.com", city: "Hong Kong", tier: "Member", orders: 2, spend: 180, joined: "2025-09-21", status: "Suspended" },
-  { id: "U-8620", name: "Priya Nathan", email: "priya.n@mail.com", city: "Kuala Lumpur", tier: "Founding", orders: 31, spend: 6120, joined: "2023-11-04", status: "Active" },
-  { id: "U-8598", name: "Chen Yu Xin", email: "yuxin@mail.com", city: "Singapore", tier: "Member", orders: 6, spend: 720, joined: "2025-12-15", status: "Active" },
+  { id: "U-8812", name: "Amara Devi", email: "amara.d@mail.com", city: "Kuala Lumpur", tier: "Founding", orders: 24, spend: 265100, joined: "2024-02-11", status: "Active" },
+  { id: "U-8790", name: "Théo Marchand", email: "theo.m@mail.com", city: "Singapore", tier: "Priority", orders: 12, spend: 117700, joined: "2024-06-02", status: "Active" },
+  { id: "U-8744", name: "Ren Takahashi", email: "ren.t@mail.com", city: "Bangkok", tier: "Member", orders: 4, spend: 25300, joined: "2025-01-19", status: "Invited" },
+  { id: "U-8701", name: "Sofia Ibrahim", email: "sofia.i@mail.com", city: "Bali", tier: "Priority", orders: 9, spend: 88550, joined: "2025-03-08", status: "Active" },
+  { id: "U-8666", name: "Marcus Well", email: "m.well@mail.com", city: "Hong Kong", tier: "Member", orders: 2, spend: 9900, joined: "2025-09-21", status: "Suspended" },
+  { id: "U-8620", name: "Priya Nathan", email: "priya.n@mail.com", city: "Kuala Lumpur", tier: "Founding", orders: 31, spend: 336600, joined: "2023-11-04", status: "Active" },
+  { id: "U-8598", name: "Chen Yu Xin", email: "yuxin@mail.com", city: "Singapore", tier: "Member", orders: 6, spend: 39600, joined: "2025-12-15", status: "Active" },
 ];
 
 export type AdminTicket = {
@@ -303,24 +303,24 @@ export type AdminTicket = {
 };
 
 export const adminTickets: AdminTicket[] = [
-  { id: "TK-55021", buyer: "Amara Devi", event: "Midnight Frequency", tier: "Priority", qty: 2, amount: 278, status: "Paid", date: "2026-08-02", channel: "Web" },
-  { id: "TK-55018", buyer: "Théo Marchand", event: "Skyline Sessions", tier: "General", qty: 1, amount: 120, status: "Paid", date: "2026-08-02", channel: "iOS" },
-  { id: "TK-55014", buyer: "Sofia Ibrahim", event: "Golden Hour", tier: "Table / 6 pax", qty: 6, amount: 890, status: "Pending", date: "2026-08-01", channel: "Web" },
-  { id: "TK-55009", buyer: "Ren Takahashi", event: "Red Room", tier: "General", qty: 2, amount: 130, status: "Refunded", date: "2026-07-31", channel: "Box office" },
-  { id: "TK-55001", buyer: "Priya Nathan", event: "Afterlight Arena", tier: "Priority", qty: 4, amount: 720, status: "Paid", date: "2026-07-30", channel: "Web" },
-  { id: "TK-54987", buyer: "Marcus Well", event: "Velvet Lounge", tier: "General", qty: 2, amount: 300, status: "Failed", date: "2026-07-29", channel: "Android" },
-  { id: "TK-54970", buyer: "Chen Yu Xin", event: "Midnight Frequency", tier: "General", qty: 3, amount: 267, status: "Paid", date: "2026-07-28", channel: "Web" },
+  { id: "TK-55021", buyer: "Amara Devi", event: "Midnight Frequency", tier: "Priority", qty: 2, amount: 15300, status: "Paid", date: "2026-08-02", channel: "Web" },
+  { id: "TK-55018", buyer: "Théo Marchand", event: "Skyline Sessions", tier: "General", qty: 1, amount: 6600, status: "Paid", date: "2026-08-02", channel: "iOS" },
+  { id: "TK-55014", buyer: "Sofia Ibrahim", event: "Golden Hour", tier: "Table / 6 pax", qty: 6, amount: 48800, status: "Pending", date: "2026-08-01", channel: "Web" },
+  { id: "TK-55009", buyer: "Ren Takahashi", event: "Red Room", tier: "General", qty: 2, amount: 7200, status: "Refunded", date: "2026-07-31", channel: "Box office" },
+  { id: "TK-55001", buyer: "Priya Nathan", event: "Afterlight Arena", tier: "Priority", qty: 4, amount: 39600, status: "Paid", date: "2026-07-30", channel: "Web" },
+  { id: "TK-54987", buyer: "Marcus Well", event: "Velvet Lounge", tier: "General", qty: 2, amount: 16400, status: "Failed", date: "2026-07-29", channel: "Android" },
+  { id: "TK-54970", buyer: "Chen Yu Xin", event: "Midnight Frequency", tier: "General", qty: 3, amount: 14700, status: "Paid", date: "2026-07-28", channel: "Web" },
 ];
 
 export const revenueSeries = [
-  { month: "Jan", revenue: 82000, tickets: 1120 },
-  { month: "Feb", revenue: 96000, tickets: 1290 },
-  { month: "Mar", revenue: 78000, tickets: 990 },
-  { month: "Apr", revenue: 134000, tickets: 1740 },
-  { month: "May", revenue: 158000, tickets: 2050 },
-  { month: "Jun", revenue: 141000, tickets: 1810 },
-  { month: "Jul", revenue: 196000, tickets: 2480 },
-  { month: "Aug", revenue: 224000, tickets: 2890 },
+  { month: "Jan", revenue: 4510000, tickets: 1120 },
+  { month: "Feb", revenue: 5280000, tickets: 1290 },
+  { month: "Mar", revenue: 4290000, tickets: 990 },
+  { month: "Apr", revenue: 7370000, tickets: 1740 },
+  { month: "May", revenue: 8690000, tickets: 2050 },
+  { month: "Jun", revenue: 7755000, tickets: 1810 },
+  { month: "Jul", revenue: 10780000, tickets: 2480 },
+  { month: "Aug", revenue: 12320000, tickets: 2890 },
 ];
 
 export const channelSplit = [
@@ -331,11 +331,11 @@ export const channelSplit = [
 ];
 
 export const topEvents = [
-  { name: "Afterlight Arena", sold: 8420, capacity: 12000, revenue: 1515600 },
-  { name: "Golden Hour", sold: 1180, capacity: 2400, revenue: 112100 },
-  { name: "Midnight Frequency", sold: 1544, capacity: 1800, revenue: 137416 },
-  { name: "Skyline Sessions", sold: 610, capacity: 900, revenue: 73200 },
-  { name: "Velvet Lounge", sold: 198, capacity: 220, revenue: 29700 },
+  { name: "Afterlight Arena", sold: 8420, capacity: 12000, revenue: 83358000 },
+  { name: "Golden Hour", sold: 1180, capacity: 2400, revenue: 6165500 },
+  { name: "Midnight Frequency", sold: 1544, capacity: 1800, revenue: 7557880 },
+  { name: "Skyline Sessions", sold: 610, capacity: 900, revenue: 4026000 },
+  { name: "Velvet Lounge", sold: 198, capacity: 220, revenue: 1633500 },
 ];
 
 export const activityFeed = [
@@ -365,9 +365,9 @@ export type PromoCode = {
 
 export const promoCodes: PromoCode[] = [
   { id: "P-01", code: "NARI20", promoter: "Nari Sun", event: "Midnight Frequency", type: "percent", value: 20, used: 128, limit: 250, expires: "2026-09-10", active: true },
-  { id: "P-02", code: "SKYLINE15", promoter: "Aurora Rooftop", event: "Skyline Sessions", type: "fixed", value: 15, used: 64, limit: 200, expires: "2026-09-25", active: true },
+  { id: "P-02", code: "SKYLINE15", promoter: "Aurora Rooftop", event: "Skyline Sessions", type: "fixed", value: 800, used: 64, limit: 200, expires: "2026-09-25", active: true },
   { id: "P-03", code: "REDLIST", promoter: "Sub Basement 9", event: "Red Room", type: "percent", value: 100, used: 40, limit: 40, expires: "2026-10-03", active: false },
-  { id: "P-04", code: "SANDDISCO", promoter: "Bamboo Sound", event: "Golden Hour", type: "fixed", value: 25, used: 212, limit: 500, expires: "2026-10-16", active: true },
+  { id: "P-04", code: "SANDDISCO", promoter: "Bamboo Sound", event: "Golden Hour", type: "fixed", value: 1400, used: 212, limit: 500, expires: "2026-10-16", active: true },
   { id: "P-05", code: "FINALE10", promoter: "AFTRS Crew", event: "Afterlight Arena", type: "percent", value: 10, used: 1340, limit: 3000, expires: "2026-12-12", active: true },
 ];
 
@@ -378,4 +378,4 @@ export const formatMonth = (iso: string) =>
   new Date(iso).toLocaleDateString("en-GB", { month: "short" }).toUpperCase();
 
 export const money = (n: number) =>
-  n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+  n.toLocaleString("en-PH", { style: "currency", currency: "PHP", maximumFractionDigits: 0 });

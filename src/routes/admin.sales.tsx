@@ -71,7 +71,7 @@ function AdminSales() {
 
       <Reveal className="mt-6 grid gap-4 sm:grid-cols-3">
         {[
-          ["Avg. order value", money(96)],
+          ["Avg. order value", money(5280)],
           ["Refund rate", "1.8%"],
           ["Best month", "August"],
         ].map(([l, v]) => (

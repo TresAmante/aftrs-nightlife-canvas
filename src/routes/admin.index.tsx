@@ -40,12 +40,12 @@ function AdminDashboard() {
       }
     >
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <StatCard label="Total revenue" value={money(1109000)} delta={18} icon={DollarSign} />
+        <StatCard label="Total revenue" value={money(60995000)} delta={18} icon={DollarSign} />
         <StatCard label="Total sales" value="14 380" delta={12} icon={CreditCard} accent="electric" />
         <StatCard label="Tickets sold" value="16 240" delta={9} icon={Ticket} />
         <StatCard label="Active events" value="6" delta={20} icon={CalendarRange} accent="electric" />
         <StatCard label="Registered users" value="42 118" delta={6} icon={Users} />
-        <StatCard label="Pending payments" value={money(18450)} delta={-4} icon={Activity} accent="crimson" />
+        <StatCard label="Pending payments" value={money(1014750)} delta={-4} icon={Activity} accent="crimson" />
       </div>
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[1.6fr_1fr]">
@@ -55,7 +55,7 @@ function AdminDashboard() {
               <h2 className="font-display text-lg font-extrabold">Revenue</h2>
               <p className="mt-1 text-xs text-muted-foreground">Last 8 months, all channels</p>
             </div>
-            <p className="font-display text-2xl font-extrabold brand-gradient-text">{money(224000)}</p>
+            <p className="font-display text-2xl font-extrabold brand-gradient-text">{money(12320000)}</p>
           </div>
           <div className="mt-8 h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -68,7 +68,7 @@ function AdminDashboard() {
                 </defs>
                 <CartesianGrid stroke="var(--border)" vertical={false} />
                 <XAxis dataKey="month" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `${v / 1000}k`} />
+                <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `${v / 1000000}M`} />
                 <Tooltip
                   contentStyle={{
                     background: "var(--popover)",
