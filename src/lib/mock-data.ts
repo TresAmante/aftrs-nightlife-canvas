@@ -371,9 +371,6 @@ export const promoCodes: PromoCode[] = [
   { id: "P-05", code: "FINALE10", promoter: "AFTRS Crew", event: "Afterlight Arena", type: "percent", value: 10, used: 1340, limit: 3000, expires: "2026-12-12", active: true },
 ];
 
-const _formatDateLegacy = (iso: string) =>
-  new Date(iso).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
-
 export const formatDay = (iso: string) =>
   new Date(iso).toLocaleDateString("en-GB", { day: "2-digit" });
 
