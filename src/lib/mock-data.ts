@@ -350,6 +350,30 @@ export const activityFeed = [
 export const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 
+export type PromoCode = {
+  id: string;
+  code: string;
+  promoter: string;
+  event: string;
+  type: "percent" | "fixed";
+  value: number;
+  used: number;
+  limit: number;
+  expires: string;
+  active: boolean;
+};
+
+export const promoCodes: PromoCode[] = [
+  { id: "P-01", code: "NARI20", promoter: "Nari Sun", event: "Midnight Frequency", type: "percent", value: 20, used: 128, limit: 250, expires: "2026-09-10", active: true },
+  { id: "P-02", code: "SKYLINE15", promoter: "Aurora Rooftop", event: "Skyline Sessions", type: "fixed", value: 15, used: 64, limit: 200, expires: "2026-09-25", active: true },
+  { id: "P-03", code: "REDLIST", promoter: "Sub Basement 9", event: "Red Room", type: "percent", value: 100, used: 40, limit: 40, expires: "2026-10-03", active: false },
+  { id: "P-04", code: "SANDDISCO", promoter: "Bamboo Sound", event: "Golden Hour", type: "fixed", value: 25, used: 212, limit: 500, expires: "2026-10-16", active: true },
+  { id: "P-05", code: "FINALE10", promoter: "AFTRS Crew", event: "Afterlight Arena", type: "percent", value: 10, used: 1340, limit: 3000, expires: "2026-12-12", active: true },
+];
+
+const _formatDateLegacy = (iso: string) =>
+  new Date(iso).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+
 export const formatDay = (iso: string) =>
   new Date(iso).toLocaleDateString("en-GB", { day: "2-digit" });
 
