@@ -5,7 +5,7 @@ import { AdminShell } from "@/components/admin/AdminShell";
 import { Reveal } from "@/components/site/Reveal";
 import { channelSplit, money, revenueSeries } from "@/lib/mock-data";
 
-export const Route = createFileRoute("/admin/sales")({
+export const Route = createFileRoute("/_authenticated/_admin/admin/sales")({
   head: () => ({
     meta: [
       { title: "Sales dashboard — AFTRS console" },

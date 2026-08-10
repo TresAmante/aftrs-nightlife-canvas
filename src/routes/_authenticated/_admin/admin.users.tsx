@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { adminUsers, formatDate, money, type AdminUser } from "@/lib/mock-data";
 
-export const Route = createFileRoute("/admin/users")({
+export const Route = createFileRoute("/_authenticated/_admin/admin/users")({
   head: () => ({
     meta: [
       { title: "User management — AFTRS console" },

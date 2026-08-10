@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { adminTickets, formatDate, money, type AdminTicket } from "@/lib/mock-data";
 
-export const Route = createFileRoute("/admin/tickets")({
+export const Route = createFileRoute("/_authenticated/_admin/admin/tickets")({
   head: () => ({
     meta: [
       { title: "Ticket management — AFTRS console" },

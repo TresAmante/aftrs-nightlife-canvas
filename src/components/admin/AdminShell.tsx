@@ -1,9 +1,10 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { BarChart3, CalendarRange, LayoutDashboard, Search, Ticket, Users } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Logo } from "@/components/site/Logo";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/useAuth";
 
 const nav = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -24,6 +25,11 @@ export function AdminShell({
   actions?: ReactNode;
   children: ReactNode;
 }) {
+  const { profile, user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const name =
+    [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || user?.email || "Admin";
+
   return (
     <div className="grain relative min-h-screen bg-ink lg:grid lg:grid-cols-[16rem_1fr]">
       <aside className="sticky top-0 z-40 hidden h-screen flex-col border-r border-border bg-sidebar p-5 lg:flex">
@@ -51,10 +57,22 @@ export function AdminShell({
           <p className="text-[0.6rem] tracking-[0.18em] text-muted-foreground uppercase">
             Signed in
           </p>
-          <p className="mt-2 text-sm font-semibold">Ops · Amara D.</p>
-          <Link to="/" className="mt-3 inline-block text-xs text-violet-soft hover:underline">
-            Back to site
-          </Link>
+          <p className="mt-2 truncate text-sm font-semibold">{name}</p>
+          <div className="mt-3 flex items-center gap-3">
+            <Link to="/" className="text-xs text-violet-soft hover:underline">
+              Back to site
+            </Link>
+            <button
+              type="button"
+              onClick={async () => {
+                await signOut();
+                void navigate({ to: "/", replace: true });
+              }}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Sign out
+            </button>
+          </div>
         </div>
       </aside>
 

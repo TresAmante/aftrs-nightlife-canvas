@@ -1,6 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { ArrowRight, Eye, EyeOff, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { AuthShell } from "@/components/site/AuthShell";
@@ -8,8 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 
 export const Route = createFileRoute("/login")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    redirect: typeof search["redirect"] === "string" ? (search["redirect"] as string) : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Sign in — AFTRS" },
@@ -24,8 +30,53 @@ export const Route = createFileRoute("/login")({
   component: LoginPage,
 });
 
+function safePath(value: string | undefined) {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return undefined;
+  return value;
+}
+
 function LoginPage() {
   const [show, setShow] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const navigate = useNavigate();
+  const { session, isAdmin, loading } = useAuth();
+  const search = Route.useSearch();
+  const target = safePath(search.redirect);
+
+  useEffect(() => {
+    if (loading || !session) return;
+    void navigate({ to: target ?? (isAdmin ? "/admin" : "/tickets"), replace: true });
+  }, [session, isAdmin, loading, navigate, target]);
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = new FormData(e.currentTarget);
+    setBusy(true);
+    const { error } = await supabase.auth.signInWithPassword({
+      email: String(form.get("email") ?? "").trim(),
+      password: String(form.get("password") ?? ""),
+    });
+    setBusy(false);
+    if (error) {
+      toast.error("Couldn't sign you in", { description: error.message });
+      return;
+    }
+    toast.success("Welcome back");
+  }
+
+  async function onGoogle() {
+    setBusy(true);
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
+    });
+    if (result.error) {
+      setBusy(false);
+      toast.error("Google sign-in failed", { description: String(result.error) });
+      return;
+    }
+    if (result.redirected) return;
+    setBusy(false);
+  }
 
   return (
     <AuthShell
@@ -48,23 +99,26 @@ function LoginPage() {
         </>
       }
     >
-      <form
-        className="space-y-5"
-        onSubmit={(e) => {
-          e.preventDefault();
-          toast.success("Welcome back", { description: "This is a UI prototype — no session created." });
-        }}
-      >
+      <form className="space-y-5" onSubmit={onSubmit}>
         <Field label="Email">
-          <Input type="email" placeholder="you@night.com" required className="h-12 rounded-2xl bg-secondary/40" />
+          <Input
+            name="email"
+            type="email"
+            placeholder="you@night.com"
+            required
+            autoComplete="email"
+            className="h-12 rounded-2xl bg-secondary/40"
+          />
         </Field>
 
         <Field label="Password">
           <div className="relative">
             <Input
+              name="password"
               type={show ? "text" : "password"}
               placeholder="••••••••"
               required
+              autoComplete="current-password"
               className="h-12 rounded-2xl bg-secondary/40 pr-12"
             />
             <button
@@ -80,15 +134,12 @@ function LoginPage() {
 
         <div className="flex items-center justify-between">
           <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
-            <Checkbox /> Keep me signed in
+            <Checkbox defaultChecked /> Keep me signed in
           </label>
-          <span className="cursor-pointer text-sm text-violet-soft underline-offset-4 hover:underline">
-            Forgot?
-          </span>
         </div>
 
-        <Button type="submit" variant="hero" size="lg" className="w-full">
-          Sign in <ArrowRight />
+        <Button type="submit" variant="hero" size="lg" className="w-full" disabled={busy}>
+          {busy ? <Loader2 className="animate-spin" /> : null} Sign in <ArrowRight />
         </Button>
 
         <div className="flex items-center gap-4 py-2">
@@ -97,14 +148,9 @@ function LoginPage() {
           <span className="h-px flex-1 bg-border" />
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Button type="button" variant="glass" size="lg">
-            Continue with Google
-          </Button>
-          <Button type="button" variant="glass" size="lg">
-            Continue with Apple
-          </Button>
-        </div>
+        <Button type="button" variant="glass" size="lg" className="w-full" onClick={onGoogle} disabled={busy}>
+          Continue with Google
+        </Button>
       </form>
     </AuthShell>
   );

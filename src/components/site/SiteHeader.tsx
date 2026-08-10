@@ -1,23 +1,36 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { Menu, Ticket, X } from "lucide-react";
+import { LogOut, Menu, Ticket, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/site/Logo";
+import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
-const links = [
+const baseLinks = [
   { to: "/", label: "Home" },
   { to: "/events", label: "Events" },
   { to: "/tickets", label: "My tickets" },
   { to: "/purchases", label: "Purchases" },
-  { to: "/admin", label: "Admin" },
 ] as const;
 
 export function SiteHeader() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const { session, profile, isAdmin, signOut } = useAuth();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const links = isAdmin ? [...baseLinks, { to: "/admin", label: "Admin" } as const] : baseLinks;
+
+  const handleSignOut = async () => {
+    setOpen(false);
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    await signOut();
+    void navigate({ to: "/", replace: true });
+  };
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16);
@@ -58,9 +71,25 @@ export function SiteHeader() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
-          <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
-            <Link to="/login">Sign in</Link>
-          </Button>
+          {session ? (
+            <>
+              <span className="hidden text-xs text-muted-foreground lg:inline">
+                {profile?.first_name ?? session.user.email}
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="hidden sm:inline-flex"
+                onClick={handleSignOut}
+              >
+                <LogOut /> Sign out
+              </Button>
+            </>
+          ) : (
+            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+              <Link to="/login">Sign in</Link>
+            </Button>
+          )}
           <Button asChild variant="hero" size="sm" className="hidden sm:inline-flex">
             <Link to="/events">
               <Ticket /> Get tickets
@@ -95,16 +124,24 @@ export function SiteHeader() {
             </Link>
           ))}
           <div className="mt-2 grid grid-cols-2 gap-2 px-1 pb-1">
-            <Button asChild variant="glass" size="sm">
-              <Link to="/login" onClick={() => setOpen(false)}>
-                Sign in
-              </Link>
-            </Button>
-            <Button asChild variant="hero" size="sm">
-              <Link to="/register" onClick={() => setOpen(false)}>
-                Join
-              </Link>
-            </Button>
+            {session ? (
+              <Button variant="glass" size="sm" className="col-span-2" onClick={handleSignOut}>
+                <LogOut /> Sign out
+              </Button>
+            ) : (
+              <>
+                <Button asChild variant="glass" size="sm">
+                  <Link to="/login" onClick={() => setOpen(false)}>
+                    Sign in
+                  </Link>
+                </Button>
+                <Button asChild variant="hero" size="sm">
+                  <Link to="/register" onClick={() => setOpen(false)}>
+                    Join
+                  </Link>
+                </Button>
+              </>
+            )}
           </div>
         </motion.nav>
       )}
