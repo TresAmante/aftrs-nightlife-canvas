@@ -11,16 +11,16 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as PurchasesRouteImport } from './routes/purchases'
 import { Route as RegisterRouteImport } from './routes/register'
-import { Route as TicketsRouteImport } from './routes/tickets'
-import { Route as AdminIndexRouteImport } from './routes/admin.index'
-import { Route as AdminEventsRouteImport } from './routes/admin.events'
-import { Route as AdminSalesRouteImport } from './routes/admin.sales'
-import { Route as AdminTicketsRouteImport } from './routes/admin.tickets'
-import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as AuthenticatedPurchasesRouteImport } from './routes/_authenticated/purchases'
+import { Route as AuthenticatedTicketsRouteImport } from './routes/_authenticated/tickets'
 import { Route as EventsIndexRouteImport } from './routes/events.index'
 import { Route as EventsEventIdRouteImport } from './routes/events.$eventId'
+import { Route as AuthenticatedAdminAdminIndexRouteImport } from './routes/_authenticated/_admin/admin.index'
+import { Route as AuthenticatedAdminAdminEventsRouteImport } from './routes/_authenticated/_admin/admin.events'
+import { Route as AuthenticatedAdminAdminSalesRouteImport } from './routes/_authenticated/_admin/admin.sales'
+import { Route as AuthenticatedAdminAdminTicketsRouteImport } from './routes/_authenticated/_admin/admin.tickets'
+import { Route as AuthenticatedAdminAdminUsersRouteImport } from './routes/_authenticated/_admin/admin.users'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -32,44 +32,19 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PurchasesRoute = PurchasesRouteImport.update({
-  id: '/purchases',
-  path: '/purchases',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TicketsRoute = TicketsRouteImport.update({
-  id: '/tickets',
+const AuthenticatedPurchasesRoute = AuthenticatedPurchasesRouteImport.update({
+  id: '/_authenticated/purchases',
+  path: '/purchases',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedTicketsRoute = AuthenticatedTicketsRouteImport.update({
+  id: '/_authenticated/tickets',
   path: '/tickets',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminIndexRoute = AdminIndexRouteImport.update({
-  id: '/admin/',
-  path: '/admin/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminEventsRoute = AdminEventsRouteImport.update({
-  id: '/admin/events',
-  path: '/admin/events',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminSalesRoute = AdminSalesRouteImport.update({
-  id: '/admin/sales',
-  path: '/admin/sales',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminTicketsRoute = AdminTicketsRouteImport.update({
-  id: '/admin/tickets',
-  path: '/admin/tickets',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminUsersRoute = AdminUsersRouteImport.update({
-  id: '/admin/users',
-  path: '/admin/users',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EventsIndexRoute = EventsIndexRouteImport.update({
@@ -82,108 +57,138 @@ const EventsEventIdRoute = EventsEventIdRouteImport.update({
   path: '/events/$eventId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminAdminIndexRoute =
+  AuthenticatedAdminAdminIndexRouteImport.update({
+    id: '/_authenticated/_admin/admin/',
+    path: '/admin/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedAdminAdminEventsRoute =
+  AuthenticatedAdminAdminEventsRouteImport.update({
+    id: '/_authenticated/_admin/admin/events',
+    path: '/admin/events',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedAdminAdminSalesRoute =
+  AuthenticatedAdminAdminSalesRouteImport.update({
+    id: '/_authenticated/_admin/admin/sales',
+    path: '/admin/sales',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedAdminAdminTicketsRoute =
+  AuthenticatedAdminAdminTicketsRouteImport.update({
+    id: '/_authenticated/_admin/admin/tickets',
+    path: '/admin/tickets',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedAdminAdminUsersRoute =
+  AuthenticatedAdminAdminUsersRouteImport.update({
+    id: '/_authenticated/_admin/admin/users',
+    path: '/admin/users',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/purchases': typeof PurchasesRoute
   '/register': typeof RegisterRoute
-  '/tickets': typeof TicketsRoute
-  '/admin/events': typeof AdminEventsRoute
-  '/admin/sales': typeof AdminSalesRoute
-  '/admin/tickets': typeof AdminTicketsRoute
-  '/admin/users': typeof AdminUsersRoute
+  '/purchases': typeof AuthenticatedPurchasesRoute
+  '/tickets': typeof AuthenticatedTicketsRoute
   '/events/$eventId': typeof EventsEventIdRoute
-  '/admin/': typeof AdminIndexRoute
   '/events/': typeof EventsIndexRoute
+  '/admin/events': typeof AuthenticatedAdminAdminEventsRoute
+  '/admin/sales': typeof AuthenticatedAdminAdminSalesRoute
+  '/admin/tickets': typeof AuthenticatedAdminAdminTicketsRoute
+  '/admin/users': typeof AuthenticatedAdminAdminUsersRoute
+  '/admin/': typeof AuthenticatedAdminAdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/purchases': typeof PurchasesRoute
   '/register': typeof RegisterRoute
-  '/tickets': typeof TicketsRoute
-  '/admin/events': typeof AdminEventsRoute
-  '/admin/sales': typeof AdminSalesRoute
-  '/admin/tickets': typeof AdminTicketsRoute
-  '/admin/users': typeof AdminUsersRoute
+  '/purchases': typeof AuthenticatedPurchasesRoute
+  '/tickets': typeof AuthenticatedTicketsRoute
   '/events/$eventId': typeof EventsEventIdRoute
-  '/admin': typeof AdminIndexRoute
   '/events': typeof EventsIndexRoute
+  '/admin/events': typeof AuthenticatedAdminAdminEventsRoute
+  '/admin/sales': typeof AuthenticatedAdminAdminSalesRoute
+  '/admin/tickets': typeof AuthenticatedAdminAdminTicketsRoute
+  '/admin/users': typeof AuthenticatedAdminAdminUsersRoute
+  '/admin': typeof AuthenticatedAdminAdminIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/purchases': typeof PurchasesRoute
   '/register': typeof RegisterRoute
-  '/tickets': typeof TicketsRoute
-  '/admin/events': typeof AdminEventsRoute
-  '/admin/sales': typeof AdminSalesRoute
-  '/admin/tickets': typeof AdminTicketsRoute
-  '/admin/users': typeof AdminUsersRoute
+  '/_authenticated/purchases': typeof AuthenticatedPurchasesRoute
+  '/_authenticated/tickets': typeof AuthenticatedTicketsRoute
   '/events/$eventId': typeof EventsEventIdRoute
-  '/admin/': typeof AdminIndexRoute
   '/events/': typeof EventsIndexRoute
+  '/_authenticated/_admin/admin/events': typeof AuthenticatedAdminAdminEventsRoute
+  '/_authenticated/_admin/admin/sales': typeof AuthenticatedAdminAdminSalesRoute
+  '/_authenticated/_admin/admin/tickets': typeof AuthenticatedAdminAdminTicketsRoute
+  '/_authenticated/_admin/admin/users': typeof AuthenticatedAdminAdminUsersRoute
+  '/_authenticated/_admin/admin/': typeof AuthenticatedAdminAdminIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/login'
-    | '/purchases'
     | '/register'
+    | '/purchases'
     | '/tickets'
+    | '/events/$eventId'
+    | '/events/'
     | '/admin/events'
     | '/admin/sales'
     | '/admin/tickets'
     | '/admin/users'
-    | '/events/$eventId'
     | '/admin/'
-    | '/events/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/login'
-    | '/purchases'
     | '/register'
+    | '/purchases'
     | '/tickets'
+    | '/events/$eventId'
+    | '/events'
     | '/admin/events'
     | '/admin/sales'
     | '/admin/tickets'
     | '/admin/users'
-    | '/events/$eventId'
     | '/admin'
-    | '/events'
   id:
     | '__root__'
     | '/'
     | '/login'
-    | '/purchases'
     | '/register'
-    | '/tickets'
-    | '/admin/events'
-    | '/admin/sales'
-    | '/admin/tickets'
-    | '/admin/users'
+    | '/_authenticated/purchases'
+    | '/_authenticated/tickets'
     | '/events/$eventId'
-    | '/admin/'
     | '/events/'
+    | '/_authenticated/_admin/admin/events'
+    | '/_authenticated/_admin/admin/sales'
+    | '/_authenticated/_admin/admin/tickets'
+    | '/_authenticated/_admin/admin/users'
+    | '/_authenticated/_admin/admin/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
-  PurchasesRoute: typeof PurchasesRoute
   RegisterRoute: typeof RegisterRoute
-  TicketsRoute: typeof TicketsRoute
-  AdminEventsRoute: typeof AdminEventsRoute
-  AdminSalesRoute: typeof AdminSalesRoute
-  AdminTicketsRoute: typeof AdminTicketsRoute
-  AdminUsersRoute: typeof AdminUsersRoute
+  AuthenticatedPurchasesRoute: typeof AuthenticatedPurchasesRoute
+  AuthenticatedTicketsRoute: typeof AuthenticatedTicketsRoute
   EventsEventIdRoute: typeof EventsEventIdRoute
-  AdminIndexRoute: typeof AdminIndexRoute
   EventsIndexRoute: typeof EventsIndexRoute
+  AuthenticatedAdminAdminEventsRoute: typeof AuthenticatedAdminAdminEventsRoute
+  AuthenticatedAdminAdminSalesRoute: typeof AuthenticatedAdminAdminSalesRoute
+  AuthenticatedAdminAdminTicketsRoute: typeof AuthenticatedAdminAdminTicketsRoute
+  AuthenticatedAdminAdminUsersRoute: typeof AuthenticatedAdminAdminUsersRoute
+  AuthenticatedAdminAdminIndexRoute: typeof AuthenticatedAdminAdminIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -202,13 +207,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/purchases': {
-      id: '/purchases'
-      path: '/purchases'
-      fullPath: '/purchases'
-      preLoaderRoute: typeof PurchasesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/register': {
       id: '/register'
       path: '/register'
@@ -216,46 +214,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tickets': {
-      id: '/tickets'
+    '/_authenticated/purchases': {
+      id: '/_authenticated/purchases'
+      path: '/purchases'
+      fullPath: '/purchases'
+      preLoaderRoute: typeof AuthenticatedPurchasesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/tickets': {
+      id: '/_authenticated/tickets'
       path: '/tickets'
       fullPath: '/tickets'
-      preLoaderRoute: typeof TicketsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/': {
-      id: '/admin/'
-      path: '/admin'
-      fullPath: '/admin/'
-      preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/events': {
-      id: '/admin/events'
-      path: '/admin/events'
-      fullPath: '/admin/events'
-      preLoaderRoute: typeof AdminEventsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/sales': {
-      id: '/admin/sales'
-      path: '/admin/sales'
-      fullPath: '/admin/sales'
-      preLoaderRoute: typeof AdminSalesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/tickets': {
-      id: '/admin/tickets'
-      path: '/admin/tickets'
-      fullPath: '/admin/tickets'
-      preLoaderRoute: typeof AdminTicketsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/users': {
-      id: '/admin/users'
-      path: '/admin/users'
-      fullPath: '/admin/users'
-      preLoaderRoute: typeof AdminUsersRouteImport
+      preLoaderRoute: typeof AuthenticatedTicketsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/events/': {
@@ -272,33 +242,58 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EventsEventIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/_admin/admin/': {
+      id: '/_authenticated/_admin/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminAdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/_admin/admin/events': {
+      id: '/_authenticated/_admin/admin/events'
+      path: '/admin/events'
+      fullPath: '/admin/events'
+      preLoaderRoute: typeof AuthenticatedAdminAdminEventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/_admin/admin/sales': {
+      id: '/_authenticated/_admin/admin/sales'
+      path: '/admin/sales'
+      fullPath: '/admin/sales'
+      preLoaderRoute: typeof AuthenticatedAdminAdminSalesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/_admin/admin/tickets': {
+      id: '/_authenticated/_admin/admin/tickets'
+      path: '/admin/tickets'
+      fullPath: '/admin/tickets'
+      preLoaderRoute: typeof AuthenticatedAdminAdminTicketsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/_admin/admin/users': {
+      id: '/_authenticated/_admin/admin/users'
+      path: '/admin/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AuthenticatedAdminAdminUsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
-  PurchasesRoute: PurchasesRoute,
   RegisterRoute: RegisterRoute,
-  TicketsRoute: TicketsRoute,
-  AdminEventsRoute: AdminEventsRoute,
-  AdminSalesRoute: AdminSalesRoute,
-  AdminTicketsRoute: AdminTicketsRoute,
-  AdminUsersRoute: AdminUsersRoute,
+  AuthenticatedPurchasesRoute: AuthenticatedPurchasesRoute,
+  AuthenticatedTicketsRoute: AuthenticatedTicketsRoute,
   EventsEventIdRoute: EventsEventIdRoute,
-  AdminIndexRoute: AdminIndexRoute,
   EventsIndexRoute: EventsIndexRoute,
+  AuthenticatedAdminAdminEventsRoute: AuthenticatedAdminAdminEventsRoute,
+  AuthenticatedAdminAdminSalesRoute: AuthenticatedAdminAdminSalesRoute,
+  AuthenticatedAdminAdminTicketsRoute: AuthenticatedAdminAdminTicketsRoute,
+  AuthenticatedAdminAdminUsersRoute: AuthenticatedAdminAdminUsersRoute,
+  AuthenticatedAdminAdminIndexRoute: AuthenticatedAdminAdminIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
