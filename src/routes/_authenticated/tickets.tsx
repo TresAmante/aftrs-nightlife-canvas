@@ -11,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { myTickets } from "@/lib/mock-data";
 
-export const Route = createFileRoute("/tickets")({
+export const Route = createFileRoute("/_authenticated/tickets")({
   head: () => ({
     meta: [
       { title: "My tickets — AFTRS wallet" },

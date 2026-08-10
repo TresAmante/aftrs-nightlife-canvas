@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { events, formatDate, money, promoCodes as seedPromos, type PromoCode } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/admin/events")({
+export const Route = createFileRoute("/_authenticated/_admin/admin/events")({
   head: () => ({
     meta: [
       { title: "Event management — AFTRS console" },

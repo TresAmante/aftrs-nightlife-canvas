@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatDate, money, purchases } from "@/lib/mock-data";
 
-export const Route = createFileRoute("/purchases")({
+export const Route = createFileRoute("/_authenticated/purchases")({
   head: () => ({
     meta: [
       { title: "Purchase history — AFTRS" },

@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { activityFeed, money, revenueSeries, topEvents } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/admin/")({
+export const Route = createFileRoute("/_authenticated/_admin/admin/")({
   head: () => ({
     meta: [
       { title: "Admin dashboard — AFTRS console" },
