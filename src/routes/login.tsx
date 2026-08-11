@@ -13,9 +13,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 
 export const Route = createFileRoute("/login")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    redirect: typeof search["redirect"] === "string" ? (search["redirect"] as string) : undefined,
-  }),
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { redirect?: string } =>
+    typeof search["redirect"] === "string" ? { redirect: search["redirect"] as string } : {},
   head: () => ({
     meta: [
       { title: "Sign in — AFTRS" },
