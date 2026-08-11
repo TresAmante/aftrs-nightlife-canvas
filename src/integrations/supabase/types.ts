@@ -14,6 +14,81 @@ export type Database = {
   }
   public: {
     Tables: {
+      events: {
+        Row: {
+          address: string | null
+          capacity: number
+          city: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          doors_time: string | null
+          event_date: string
+          featured: boolean
+          genre: string | null
+          id: string
+          image_url: string | null
+          lineup: string[]
+          name: string
+          price: number
+          slug: string
+          sold: number
+          start_time: string | null
+          status: string
+          tagline: string | null
+          updated_at: string
+          venue: string | null
+        }
+        Insert: {
+          address?: string | null
+          capacity?: number
+          city: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          doors_time?: string | null
+          event_date: string
+          featured?: boolean
+          genre?: string | null
+          id?: string
+          image_url?: string | null
+          lineup?: string[]
+          name: string
+          price?: number
+          slug: string
+          sold?: number
+          start_time?: string | null
+          status?: string
+          tagline?: string | null
+          updated_at?: string
+          venue?: string | null
+        }
+        Update: {
+          address?: string | null
+          capacity?: number
+          city?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          doors_time?: string | null
+          event_date?: string
+          featured?: boolean
+          genre?: string | null
+          id?: string
+          image_url?: string | null
+          lineup?: string[]
+          name?: string
+          price?: number
+          slug?: string
+          sold?: number
+          start_time?: string | null
+          status?: string
+          tagline?: string | null
+          updated_at?: string
+          venue?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -46,6 +121,47 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      ticket_tiers: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          name: string
+          perks: string[]
+          price: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          name: string
+          perks?: string[]
+          price?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          name?: string
+          perks?: string[]
+          price?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_tiers_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
