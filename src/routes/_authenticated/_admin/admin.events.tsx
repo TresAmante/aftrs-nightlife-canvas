@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Percent, Plus, Tag, Ticket, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ImagePlus, Loader2, Percent, Plus, Tag, Ticket, Trash2 } from "lucide-react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { AdminShell } from "@/components/admin/AdminShell";
@@ -10,7 +11,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { events, formatDate, money, promoCodes as seedPromos, type PromoCode } from "@/lib/mock-data";
+import { createEvent, deleteEvent, listEvents } from "@/lib/events-api";
+import { formatDate, money, promoCodes as seedPromos, type PromoCode } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/_admin/admin/events")({
@@ -25,26 +27,121 @@ export const Route = createFileRoute("/_authenticated/_admin/admin/events")({
   component: AdminEvents,
 });
 
+type TierDraft = { name: string; price: string };
+
 function AdminEvents() {
+  const queryClient = useQueryClient();
+  const { data: events = [], isLoading } = useQuery({ queryKey: ["admin-events"], queryFn: listEvents });
+
   const [open, setOpen] = useState(false);
-  const [tiers, setTiers] = useState([
-    { name: "General", price: "89" },
-    { name: "Priority", price: "139" },
+  const [form, setForm] = useState({
+    name: "",
+    city: "",
+    venue: "",
+    date: "",
+    time: "",
+    genre: "",
+    capacity: "",
+    description: "",
+  });
+  const [tiers, setTiers] = useState<TierDraft[]>([
+    { name: "General", price: "4900" },
+    { name: "Priority", price: "7600" },
   ]);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
   const [promos, setPromos] = useState<{ code: string; type: "percent" | "fixed"; value: string }[]>([
     { code: "EARLYBIRD", type: "percent", value: "15" },
   ]);
   const [codes, setCodes] = useState<PromoCode[]>(seedPromos);
 
+  const setField = (key: keyof typeof form, v: string) => setForm((f) => ({ ...f, [key]: v }));
   const setTier = (i: number, key: "name" | "price", v: string) =>
     setTiers((t) => t.map((row, idx) => (idx === i ? { ...row, [key]: v } : row)));
   const setPromo = (i: number, patch: Partial<{ code: string; type: "percent" | "fixed"; value: string }>) =>
     setPromos((p) => p.map((row, idx) => (idx === i ? { ...row, ...patch } : row)));
 
+  const pickImage = (file: File | null) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("That file isn't an image");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be under 5 MB");
+      return;
+    }
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const resetForm = () => {
+    setForm({ name: "", city: "", venue: "", date: "", time: "", genre: "", capacity: "", description: "" });
+    setTiers([{ name: "General", price: "" }]);
+    setImageFile(null);
+    setImagePreview(null);
+  };
+
+  const create = useMutation({
+    mutationFn: async () => {
+      const cleanTiers = tiers
+        .filter((t) => t.name.trim() && t.price)
+        .map((t) => ({ name: t.name.trim(), price: Number(t.price) }));
+      return createEvent({
+        name: form.name.trim(),
+        city: form.city.trim(),
+        venue: form.venue.trim(),
+        genre: form.genre.trim(),
+        description: form.description.trim(),
+        event_date: form.date,
+        start_time: form.time,
+        capacity: Number(form.capacity || 0),
+        status: "On sale",
+        imageFile,
+        tiers: cleanTiers,
+      });
+    },
+    onSuccess: (_id, _v) => {
+      const fresh = promos
+        .filter((p) => p.code.trim() && p.value)
+        .map((p, i) => ({
+          id: `P-new-${Date.now()}-${i}`,
+          code: p.code.trim(),
+          promoter: "AFTRS Crew",
+          event: form.name || "New event",
+          type: p.type,
+          value: Number(p.value),
+          used: 0,
+          limit: 100,
+          expires: new Date().toISOString().slice(0, 10),
+          active: true,
+        }));
+      if (fresh.length) setCodes((c) => [...fresh, ...c]);
+      queryClient.invalidateQueries({ queryKey: ["admin-events"] });
+      toast.success("Event published", { description: `${tiers.length} ticket tiers saved` });
+      setOpen(false);
+      resetForm();
+    },
+    onError: (e: Error) => toast.error("Could not publish event", { description: e.message }),
+  });
+
+  const remove = useMutation({
+    mutationFn: deleteEvent,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-events"] });
+      toast.success("Event removed");
+    },
+    onError: (e: Error) => toast.error("Could not remove event", { description: e.message }),
+  });
+
+  const canSubmit = form.name.trim() && form.city.trim() && form.date && tiers.some((t) => t.name && t.price);
+
   return (
     <AdminShell
       title="Event management"
-      subtitle={`${events.length} events in the catalogue`}
+      subtitle={isLoading ? "Loading catalogue…" : `${events.length} events in the catalogue`}
       actions={
         <Button variant="hero" size="sm" onClick={() => setOpen(true)}>
           <Plus /> Create event
@@ -52,32 +149,75 @@ function AdminEvents() {
       }
     >
       <div className="overflow-hidden rounded-3xl border border-border">
-        <div className="hidden grid-cols-[1.8fr_1fr_1fr_0.9fr_0.8fr] gap-4 bg-surface-2/60 px-6 py-4 text-[0.62rem] tracking-[0.18em] text-muted-foreground uppercase lg:grid">
+        <div className="hidden grid-cols-[1.8fr_1fr_1fr_0.9fr_0.8fr_auto] gap-4 bg-surface-2/60 px-6 py-4 text-[0.62rem] tracking-[0.18em] text-muted-foreground uppercase lg:grid">
           <span>Event</span>
           <span>City</span>
           <span>Date</span>
           <span className="text-right">Sold</span>
           <span className="text-right">Status</span>
+          <span />
         </div>
+
+        {isLoading && (
+          <div className="space-y-3 p-6">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="h-14 animate-pulse rounded-2xl bg-surface-2/60" />
+            ))}
+          </div>
+        )}
+
+        {!isLoading && events.length === 0 && (
+          <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
+            <p className="font-display text-lg font-extrabold">No events yet</p>
+            <p className="max-w-sm text-sm text-muted-foreground">
+              Publish your first event — add artwork, ticket tiers and pricing in one go.
+            </p>
+            <Button variant="hero" size="sm" onClick={() => setOpen(true)}>
+              <Plus /> Create event
+            </Button>
+          </div>
+        )}
+
         {events.map((e) => (
           <div
             key={e.id}
-            className="grid gap-2 border-t border-border bg-surface/40 px-6 py-4 transition-colors hover:bg-surface-2/60 lg:grid-cols-[1.8fr_1fr_1fr_0.9fr_0.8fr] lg:items-center lg:gap-4"
+            className="grid gap-2 border-t border-border bg-surface/40 px-6 py-4 transition-colors hover:bg-surface-2/60 lg:grid-cols-[1.8fr_1fr_1fr_0.9fr_0.8fr_auto] lg:items-center lg:gap-4"
           >
-            <div className="min-w-0">
-              <p className="truncate font-semibold">{e.name}</p>
-              <p className="truncate text-xs text-muted-foreground">
-                {e.venue} · from {money(e.price)}
-              </p>
+            <div className="flex min-w-0 items-center gap-3">
+              {e.imageSrc ? (
+                <img
+                  src={e.imageSrc}
+                  alt={`${e.name} artwork`}
+                  loading="lazy"
+                  className="size-11 shrink-0 rounded-xl object-cover"
+                />
+              ) : (
+                <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-secondary/40 text-muted-foreground">
+                  <ImagePlus className="size-4" />
+                </div>
+              )}
+              <div className="min-w-0">
+                <p className="truncate font-semibold">{e.name}</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {e.venue ?? "Venue TBA"} · from {money(e.tiers[0]?.price ?? e.price)}
+                </p>
+              </div>
             </div>
             <p className="text-sm text-muted-foreground">{e.city}</p>
-            <p className="text-sm text-muted-foreground">{formatDate(e.date)}</p>
+            <p className="text-sm text-muted-foreground">{formatDate(e.event_date)}</p>
             <p className="text-sm lg:text-right">
               {e.sold.toLocaleString()} / {e.capacity.toLocaleString()}
             </p>
             <div className="lg:flex lg:justify-end">
-              <StatusBadge status={e.status} />
+              <StatusBadge status={e.status as never} />
             </div>
+            <button
+              aria-label={`Delete ${e.name}`}
+              onClick={() => remove.mutate(e.id)}
+              className="w-fit rounded-xl border border-border p-2 text-muted-foreground transition-colors hover:text-destructive"
+            >
+              <Trash2 className="size-4" />
+            </button>
           </div>
         ))}
       </div>
@@ -155,28 +295,123 @@ function AdminEvents() {
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
+              <Label>Event artwork</Label>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => pickImage(e.target.files?.[0] ?? null)}
+              />
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                className="group relative flex h-40 w-full items-center justify-center overflow-hidden rounded-2xl border border-dashed border-border bg-secondary/30 transition-colors hover:border-primary/60"
+              >
+                {imagePreview ? (
+                  <>
+                    <img src={imagePreview} alt="Event artwork preview" className="size-full object-cover" />
+                    <span className="absolute inset-x-0 bottom-0 bg-background/70 py-2 text-xs">
+                      Click to replace
+                    </span>
+                  </>
+                ) : (
+                  <span className="flex flex-col items-center gap-2 text-sm text-muted-foreground">
+                    <ImagePlus className="size-6 text-accent" />
+                    Upload a poster — JPG or PNG, up to 5 MB
+                  </span>
+                )}
+              </button>
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="ev-title">Title</Label>
-              <Input id="ev-title" placeholder="Midnight Frequency" className="h-11 rounded-xl bg-secondary/40" />
+              <Input
+                id="ev-title"
+                value={form.name}
+                onChange={(e) => setField("name", e.target.value)}
+                placeholder="Midnight Frequency"
+                className="h-11 rounded-xl bg-secondary/40"
+              />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="ev-city">City</Label>
-                <Input id="ev-city" placeholder="Singapore" className="h-11 rounded-xl bg-secondary/40" />
+                <Input
+                  id="ev-city"
+                  value={form.city}
+                  onChange={(e) => setField("city", e.target.value)}
+                  placeholder="Manila"
+                  className="h-11 rounded-xl bg-secondary/40"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="ev-venue">Venue</Label>
+                <Input
+                  id="ev-venue"
+                  value={form.venue}
+                  onChange={(e) => setField("venue", e.target.value)}
+                  placeholder="The Vault"
+                  className="h-11 rounded-xl bg-secondary/40"
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="ev-date">Date</Label>
-                <Input id="ev-date" type="date" className="h-11 rounded-xl bg-secondary/40" />
+                <Input
+                  id="ev-date"
+                  type="date"
+                  value={form.date}
+                  onChange={(e) => setField("date", e.target.value)}
+                  className="h-11 rounded-xl bg-secondary/40"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="ev-time">Start time</Label>
+                <Input
+                  id="ev-time"
+                  type="time"
+                  value={form.time}
+                  onChange={(e) => setField("time", e.target.value)}
+                  className="h-11 rounded-xl bg-secondary/40"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="ev-genre">Genre</Label>
+                <Input
+                  id="ev-genre"
+                  value={form.genre}
+                  onChange={(e) => setField("genre", e.target.value)}
+                  placeholder="Techno"
+                  className="h-11 rounded-xl bg-secondary/40"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="ev-cap">Capacity</Label>
+                <Input
+                  id="ev-cap"
+                  inputMode="numeric"
+                  value={form.capacity}
+                  onChange={(e) => setField("capacity", e.target.value.replace(/[^\d]/g, ""))}
+                  placeholder="1200"
+                  className="h-11 rounded-xl bg-secondary/40"
+                />
               </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="ev-desc">Description</Label>
-              <Textarea id="ev-desc" rows={4} className="rounded-xl bg-secondary/40" />
+              <Textarea
+                id="ev-desc"
+                rows={4}
+                value={form.description}
+                onChange={(e) => setField("description", e.target.value)}
+                className="rounded-xl bg-secondary/40"
+              />
             </div>
 
             <div className="space-y-3 rounded-2xl border border-border bg-surface/50 p-4">
               <div className="flex items-center justify-between gap-3">
                 <p className="flex items-center gap-2 text-sm font-semibold">
-                  <Ticket className="size-4 text-accent" /> Ticket pricing
+                  <Ticket className="size-4 text-accent" /> Ticket pricing (₱)
                 </p>
                 <Button
                   variant="glass"
@@ -196,7 +431,7 @@ function AdminEvents() {
                   />
                   <div className="relative">
                     <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">
-                      $
+                      ₱
                     </span>
                     <Input
                       value={t.price}
@@ -248,7 +483,7 @@ function AdminEvents() {
                           p.type === t ? "bg-primary/20 text-foreground" : "text-muted-foreground",
                         )}
                       >
-                        {t === "percent" ? "%" : "$"}
+                        {t === "percent" ? "%" : "₱"}
                       </button>
                     ))}
                   </div>
@@ -256,7 +491,7 @@ function AdminEvents() {
                     value={p.value}
                     onChange={(e) => setPromo(i, { value: e.target.value.replace(/[^\d.]/g, "") })}
                     inputMode="decimal"
-                    placeholder={p.type === "percent" ? "15" : "20"}
+                    placeholder={p.type === "percent" ? "15" : "500"}
                     className="h-11 rounded-xl bg-secondary/40"
                   />
                   <button
@@ -280,29 +515,11 @@ function AdminEvents() {
               <Button
                 variant="hero"
                 size="sm"
-                onClick={() => {
-                  const fresh = promos
-                    .filter((p) => p.code.trim() && p.value)
-                    .map((p, i) => ({
-                      id: `P-new-${Date.now()}-${i}`,
-                      code: p.code.trim(),
-                      promoter: "AFTRS Crew",
-                      event: "New event",
-                      type: p.type,
-                      value: Number(p.value),
-                      used: 0,
-                      limit: 100,
-                      expires: new Date().toISOString().slice(0, 10),
-                      active: true,
-                    }));
-                  if (fresh.length) setCodes((c) => [...fresh, ...c]);
-                  setOpen(false);
-                  toast.success("Event published", {
-                    description: `${tiers.length} ticket tiers · ${fresh.length} promo codes live`,
-                  });
-                }}
+                disabled={!canSubmit || create.isPending}
+                onClick={() => create.mutate()}
               >
-                Publish
+                {create.isPending ? <Loader2 className="animate-spin" /> : null}
+                {create.isPending ? "Publishing…" : "Publish"}
               </Button>
             </div>
           </div>
