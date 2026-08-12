@@ -1,4 +1,4 @@
-import { Building2, Check, Copy, Smartphone } from "lucide-react";
+import { Building2, Check, Copy, Loader2, Smartphone } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -7,13 +7,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/hooks/useAuth";
 import { money } from "@/lib/mock-data";
+import { createOrder } from "@/lib/orders-api";
 import { cn } from "@/lib/utils";
 
 type Props = {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   eventName: string;
+  eventId?: string | null;
   tier: string;
   qty: number;
   total: number;
@@ -36,12 +39,55 @@ const methods = [
 
 const banks = ["BPI", "BDO", "UnionBank", "Metrobank", "Landbank"];
 
-export function CheckoutDialog({ open, onOpenChange, eventName, tier, qty, total }: Props) {
+export function CheckoutDialog({ open, onOpenChange, eventName, eventId, tier, qty, total }: Props) {
+  const { user, profile } = useAuth();
   const [method, setMethod] = useState<"gcash" | "bank">("gcash");
   const [mobile, setMobile] = useState("");
   const [bank, setBank] = useState("BPI");
   const [promo, setPromo] = useState("");
   const [applied, setApplied] = useState(0);
+  const [attendee, setAttendee] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const defaultAttendee =
+    [profile?.first_name, profile?.last_name].filter(Boolean).join(" ").trim() ||
+    profile?.email ||
+    user?.email ||
+    "";
+
+  const pay = async () => {
+    if (!user) {
+      toast.error("Sign in to complete your purchase");
+      return;
+    }
+    setSaving(true);
+    try {
+      const order = await createOrder({
+        eventId: eventId ?? null,
+        eventName,
+        tierName: tier,
+        attendeeName: attendee.trim() || defaultAttendee,
+        quantity: qty,
+        unitPrice: qty > 0 ? Math.round(total / qty) : total,
+        discount,
+        total: due,
+        paymentMethod: method === "gcash" ? "GCash" : `${bank} transfer`,
+        promoCode: applied > 0 ? promo.trim().toUpperCase() : null,
+        status: method === "gcash" ? "Paid" : "Pending",
+      });
+      onOpenChange(false);
+      toast.success(`Order ${order.order_ref} recorded`, {
+        description:
+          method === "gcash"
+            ? `Approve ${money(due)} in your GCash app${mobile ? ` (${mobile})` : ""}.`
+            : `Send ${money(due)} from ${bank} using ref ${reference}.`,
+      });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not record that order");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const discount = Math.round(total * applied);
   const due = total - discount;
@@ -160,6 +206,17 @@ export function CheckoutDialog({ open, onOpenChange, eventName, tier, qty, total
         )}
 
         <div className="space-y-2">
+          <Label htmlFor="attendee">Ticket under the name of</Label>
+          <Input
+            id="attendee"
+            value={attendee}
+            onChange={(e) => setAttendee(e.target.value)}
+            placeholder={defaultAttendee || "Full name on the ticket"}
+            className="h-11 rounded-xl bg-secondary/40"
+          />
+        </div>
+
+        <div className="space-y-2">
           <Label htmlFor="promo">Promo code</Label>
           <div className="flex gap-2">
             <Input
@@ -192,20 +249,10 @@ export function CheckoutDialog({ open, onOpenChange, eventName, tier, qty, total
           variant="hero"
           size="lg"
           className="w-full"
-          onClick={() => {
-            onOpenChange(false);
-            toast.success(
-              method === "gcash" ? "GCash payment request sent" : "Transfer instructions sent",
-              {
-                description:
-                  method === "gcash"
-                    ? `Approve ${money(due)} in your GCash app${mobile ? ` (${mobile})` : ""}.`
-                    : `Send ${money(due)} from ${bank} using ref ${reference}.`,
-              },
-            );
-          }}
+          disabled={saving}
+          onClick={() => void pay()}
         >
-          <Check /> Pay {money(due)}
+          {saving ? <Loader2 className="animate-spin" /> : <Check />} Pay {money(due)}
         </Button>
         <p className="text-center text-[0.7rem] text-muted-foreground">
           Prototype checkout — no live payment is processed.
