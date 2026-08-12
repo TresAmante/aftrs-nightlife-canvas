@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Loader2, Search, Ticket } from "lucide-react";
+import { Banknote, Loader2, Search, Ticket, Users } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -67,9 +67,9 @@ function AdminTickets() {
   return (
     <AdminShell title="Ticket sales" subtitle={`${orders.length} orders recorded`}>
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Tickets sold" value={String(ticketsSold)} />
-        <StatCard label="Gross revenue" value={money(revenue)} />
-        <StatCard label="Unique buyers" value={String(buyers.length)} />
+        <StatCard label="Tickets sold" value={String(ticketsSold)} delta={0} icon={Ticket} />
+        <StatCard label="Gross revenue" value={money(revenue)} delta={0} icon={Banknote} accent="electric" />
+        <StatCard label="Unique buyers" value={String(buyers.length)} delta={0} icon={Users} accent="crimson" />
       </div>
 
       <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
