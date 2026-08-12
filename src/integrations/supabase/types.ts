@@ -122,6 +122,77 @@ export type Database = {
         }
         Relationships: []
       }
+      ticket_orders: {
+        Row: {
+          attendee_name: string
+          buyer_email: string | null
+          buyer_name: string
+          created_at: string
+          discount: number
+          event_id: string | null
+          event_name: string
+          id: string
+          order_ref: string
+          payment_method: string
+          promo_code: string | null
+          quantity: number
+          status: string
+          tier_name: string
+          total: number
+          unit_price: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attendee_name: string
+          buyer_email?: string | null
+          buyer_name: string
+          created_at?: string
+          discount?: number
+          event_id?: string | null
+          event_name: string
+          id?: string
+          order_ref: string
+          payment_method?: string
+          promo_code?: string | null
+          quantity?: number
+          status?: string
+          tier_name: string
+          total?: number
+          unit_price?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attendee_name?: string
+          buyer_email?: string | null
+          buyer_name?: string
+          created_at?: string
+          discount?: number
+          event_id?: string | null
+          event_name?: string
+          id?: string
+          order_ref?: string
+          payment_method?: string
+          promo_code?: string | null
+          quantity?: number
+          status?: string
+          tier_name?: string
+          total?: number
+          unit_price?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_orders_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ticket_tiers: {
         Row: {
           created_at: string
