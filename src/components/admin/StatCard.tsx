@@ -12,11 +12,12 @@ export function StatCard({
 }: {
   label: string;
   value: string;
-  delta: number;
+  delta?: number;
+  caption?: string;
   icon: LucideIcon;
   accent?: "violet" | "electric" | "crimson";
 }) {
-  const up = delta >= 0;
+  const up = (delta ?? 0) >= 0;
   const ring = {
     violet: "border-primary/30 bg-primary/10 text-violet-soft",
     electric: "border-accent/30 bg-accent/10 text-accent",
@@ -36,6 +37,11 @@ export function StatCard({
         </span>
       </div>
       <p className="relative mt-5 font-display text-3xl leading-none font-extrabold">{value}</p>
+      {delta === undefined ? (
+        caption ? (
+          <p className="relative mt-3 text-xs text-muted-foreground">{caption}</p>
+        ) : null
+      ) : (
       <p
         className={cn(
           "relative mt-3 inline-flex items-center gap-1.5 text-xs",
@@ -46,6 +52,7 @@ export function StatCard({
         {up ? "+" : ""}
         {delta}% vs last month
       </p>
+      )}
     </div>
   );
 }
