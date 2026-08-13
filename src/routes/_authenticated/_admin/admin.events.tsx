@@ -69,6 +69,8 @@ function AdminEvents() {
   ]);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [visibility, setVisibility] = useState<Visibility>("public");
+  const [launchAt, setLaunchAt] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [promos, setPromos] = useState<{ code: string; type: "percent" | "fixed"; value: string }[]>([
@@ -101,6 +103,8 @@ function AdminEvents() {
     setTiers([{ name: "General", price: "" }]);
     setImageFile(null);
     setImagePreview(null);
+    setVisibility("public");
+    setLaunchAt("");
   };
 
   const create = useMutation({
@@ -117,7 +121,9 @@ function AdminEvents() {
         event_date: form.date,
         start_time: form.time,
         capacity: Number(form.capacity || 0),
-        status: "On sale",
+        status: visibility === "private" ? "Draft" : "On sale",
+        publish_at:
+          visibility === "scheduled" && launchAt ? new Date(launchAt).toISOString() : null,
         imageFile,
         tiers: cleanTiers,
       });
@@ -153,6 +159,22 @@ function AdminEvents() {
       toast.success("Event removed");
     },
     onError: (e: Error) => toast.error("Could not remove event", { description: e.message }),
+  });
+
+  const changeVisibility = useMutation({
+    mutationFn: ({ id, vis, at }: { id: string; vis: Visibility; at?: string | null }) =>
+      setEventVisibility(id, vis, at),
+    onSuccess: (_d, v) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-events"] });
+      toast.success(
+        v.vis === "public"
+          ? "Event is now public"
+          : v.vis === "private"
+            ? "Event hidden from the public site"
+            : "Public launch scheduled",
+      );
+    },
+    onError: (e: Error) => toast.error("Could not update visibility", { description: e.message }),
   });
 
   const canSubmit = form.name.trim() && form.city.trim() && form.date && tiers.some((t) => t.name && t.price);
