@@ -64,14 +64,14 @@ function AdminDashboard() {
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          <StatCard label="Total revenue" value={money(data?.totalRevenue ?? 0)} delta={0} icon={DollarSign} />
+          <StatCard label="Total revenue" value={money(data?.totalRevenue ?? 0)} icon={DollarSign} />
           <StatCard
             label="Paid orders"
             value={(data?.totalSales ?? 0).toLocaleString()}
             icon={CreditCard}
             accent="electric"
           />
-          <StatCard label="Tickets sold" value={(data?.ticketsSold ?? 0).toLocaleString()} delta={0} icon={Ticket} />
+          <StatCard label="Tickets sold" value={(data?.ticketsSold ?? 0).toLocaleString()} icon={Ticket} />
           <StatCard
             label="Live events"
             value={(data?.activeEvents ?? 0).toLocaleString()}
@@ -95,7 +95,7 @@ function AdminDashboard() {
             icon={Activity}
             accent="crimson"
           />
-          <StatCard label="Refunded" value={money(data?.refunded ?? 0)} delta={0} icon={CreditCard} accent="crimson" />
+          <StatCard label="Refunded" value={money(data?.refunded ?? 0)} icon={CreditCard} accent="crimson" />
         </div>
       )}
 
