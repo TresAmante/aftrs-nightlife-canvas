@@ -1,17 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ImagePlus, Loader2, Percent, Plus, Tag, Ticket, Trash2 } from "lucide-react";
+import { CalendarClock, Eye, EyeOff, ImagePlus, Loader2, Percent, Plus, Tag, Ticket, Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { AdminShell } from "@/components/admin/AdminShell";
-import { StatusBadge } from "@/components/site/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { createEvent, deleteEvent, listEvents } from "@/lib/events-api";
+import {
+  createEvent,
+  deleteEvent,
+  listEvents,
+  setEventVisibility,
+  visibilityOf,
+  type Visibility,
+} from "@/lib/events-api";
 import { formatDate, money, promoCodes as seedPromos, type PromoCode } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +34,19 @@ export const Route = createFileRoute("/_authenticated/_admin/admin/events")({
 });
 
 type TierDraft = { name: string; price: string };
+
+function toLocalInput(iso: string | null) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const pad = (n: number) => `${n}`.padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+const visibilityMeta: Record<Visibility, { label: string; className: string }> = {
+  public: { label: "Public", className: "border-emerald-400/30 bg-emerald-400/10 text-emerald-300" },
+  private: { label: "Private", className: "border-border bg-secondary/60 text-muted-foreground" },
+  scheduled: { label: "Scheduled", className: "border-accent/40 bg-accent/10 text-accent" },
+};
 
 function AdminEvents() {
   const queryClient = useQueryClient();
