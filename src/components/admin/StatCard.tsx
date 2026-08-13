@@ -7,6 +7,7 @@ export function StatCard({
   label,
   value,
   delta,
+  caption,
   icon: Icon,
   accent = "violet",
 }: {
