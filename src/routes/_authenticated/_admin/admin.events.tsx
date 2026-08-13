@@ -1,17 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ImagePlus, Loader2, Percent, Plus, Tag, Ticket, Trash2 } from "lucide-react";
+import { CalendarClock, Eye, EyeOff, ImagePlus, Loader2, Percent, Plus, Tag, Ticket, Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { AdminShell } from "@/components/admin/AdminShell";
-import { StatusBadge } from "@/components/site/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { createEvent, deleteEvent, listEvents } from "@/lib/events-api";
+import {
+  createEvent,
+  deleteEvent,
+  listEvents,
+  setEventVisibility,
+  visibilityOf,
+  type Visibility,
+} from "@/lib/events-api";
 import { formatDate, money, promoCodes as seedPromos, type PromoCode } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +34,19 @@ export const Route = createFileRoute("/_authenticated/_admin/admin/events")({
 });
 
 type TierDraft = { name: string; price: string };
+
+function toLocalInput(iso: string | null) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const pad = (n: number) => `${n}`.padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+const visibilityMeta: Record<Visibility, { label: string; className: string }> = {
+  public: { label: "Public", className: "border-emerald-400/30 bg-emerald-400/10 text-emerald-300" },
+  private: { label: "Private", className: "border-border bg-secondary/60 text-muted-foreground" },
+  scheduled: { label: "Scheduled", className: "border-accent/40 bg-accent/10 text-accent" },
+};
 
 function AdminEvents() {
   const queryClient = useQueryClient();
@@ -50,6 +69,8 @@ function AdminEvents() {
   ]);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [visibility, setVisibility] = useState<Visibility>("public");
+  const [launchAt, setLaunchAt] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [promos, setPromos] = useState<{ code: string; type: "percent" | "fixed"; value: string }[]>([
@@ -82,6 +103,8 @@ function AdminEvents() {
     setTiers([{ name: "General", price: "" }]);
     setImageFile(null);
     setImagePreview(null);
+    setVisibility("public");
+    setLaunchAt("");
   };
 
   const create = useMutation({
@@ -98,7 +121,9 @@ function AdminEvents() {
         event_date: form.date,
         start_time: form.time,
         capacity: Number(form.capacity || 0),
-        status: "On sale",
+        status: visibility === "private" ? "Draft" : "On sale",
+        publish_at:
+          visibility === "scheduled" && launchAt ? new Date(launchAt).toISOString() : null,
         imageFile,
         tiers: cleanTiers,
       });
@@ -134,6 +159,22 @@ function AdminEvents() {
       toast.success("Event removed");
     },
     onError: (e: Error) => toast.error("Could not remove event", { description: e.message }),
+  });
+
+  const changeVisibility = useMutation({
+    mutationFn: ({ id, vis, at }: { id: string; vis: Visibility; at?: string | null }) =>
+      setEventVisibility(id, vis, at),
+    onSuccess: (_d, v) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-events"] });
+      toast.success(
+        v.vis === "public"
+          ? "Event is now public"
+          : v.vis === "private"
+            ? "Event hidden from the public site"
+            : "Public launch scheduled",
+      );
+    },
+    onError: (e: Error) => toast.error("Could not update visibility", { description: e.message }),
   });
 
   const canSubmit = form.name.trim() && form.city.trim() && form.date && tiers.some((t) => t.name && t.price);
@@ -208,8 +249,53 @@ function AdminEvents() {
             <p className="text-sm lg:text-right">
               {e.sold.toLocaleString()} / {e.capacity.toLocaleString()}
             </p>
-            <div className="lg:flex lg:justify-end">
-              <StatusBadge status={e.status as never} />
+            <div className="flex flex-col items-start gap-2 lg:items-end">
+              {(() => {
+                const vis = visibilityOf(e);
+                const meta = visibilityMeta[vis];
+                return (
+                  <>
+                    <span
+                      className={cn(
+                        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[0.68rem] font-medium tracking-[0.08em] uppercase",
+                        meta.className,
+                      )}
+                    >
+                      {vis === "public" ? (
+                        <Eye className="size-3" />
+                      ) : vis === "private" ? (
+                        <EyeOff className="size-3" />
+                      ) : (
+                        <CalendarClock className="size-3" />
+                      )}
+                      {meta.label}
+                    </span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        onClick={() =>
+                          changeVisibility.mutate({ id: e.id, vis: vis === "public" ? "private" : "public" })
+                        }
+                        className="rounded-full border border-border px-3 py-1 text-[0.68rem] text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground"
+                      >
+                        {vis === "public" ? "Make private" : "Publish now"}
+                      </button>
+                      <input
+                        type="datetime-local"
+                        aria-label={`Schedule public launch for ${e.name}`}
+                        value={toLocalInput(e.publish_at)}
+                        onChange={(ev) =>
+                          changeVisibility.mutate({
+                            id: e.id,
+                            vis: ev.target.value ? "scheduled" : "public",
+                            at: ev.target.value ? new Date(ev.target.value).toISOString() : null,
+                          })
+                        }
+                        className="rounded-full border border-border bg-secondary/40 px-3 py-1 text-[0.68rem] text-muted-foreground"
+                      />
+                    </div>
+                  </>
+                );
+              })()}
             </div>
             <button
               aria-label={`Delete ${e.name}`}

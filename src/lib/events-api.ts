@@ -20,6 +20,7 @@ export type DbEvent = {
   price: number;
   status: string;
   featured: boolean;
+  publish_at: string | null;
 };
 
 export type DbTier = {
@@ -31,6 +32,14 @@ export type DbTier = {
 };
 
 export type EventWithTiers = DbEvent & { tiers: DbTier[]; imageSrc: string | null };
+
+export type Visibility = "public" | "private" | "scheduled";
+
+export function visibilityOf(e: Pick<DbEvent, "status" | "publish_at">): Visibility {
+  if (e.status === "Draft") return "private";
+  if (e.publish_at && new Date(e.publish_at).getTime() > Date.now()) return "scheduled";
+  return "public";
+}
 
 const BUCKET = "event-images";
 
@@ -92,6 +101,7 @@ export type NewEventInput = {
   genre?: string;
   capacity: number;
   status: string;
+  publish_at?: string | null;
   imageFile?: File | null;
   tiers: { name: string; price: number }[];
 };
@@ -116,6 +126,7 @@ export async function createEvent(input: NewEventInput): Promise<string> {
       capacity: input.capacity,
       price: basePrice,
       status: input.status,
+      publish_at: input.publish_at ?? null,
       image_url,
     })
     .select("id")
@@ -134,5 +145,20 @@ export async function createEvent(input: NewEventInput): Promise<string> {
 
 export async function deleteEvent(id: string) {
   const { error } = await supabase.from("events").delete().eq("id", id);
+  if (error) throw error;
+}
+
+export async function setEventVisibility(
+  id: string,
+  visibility: Visibility,
+  publishAt?: string | null,
+) {
+  const patch =
+    visibility === "private"
+      ? { status: "Draft", publish_at: null }
+      : visibility === "scheduled"
+        ? { status: "On sale", publish_at: publishAt ?? null }
+        : { status: "On sale", publish_at: null };
+  const { error } = await supabase.from("events").update(patch).eq("id", id);
   if (error) throw error;
 }
