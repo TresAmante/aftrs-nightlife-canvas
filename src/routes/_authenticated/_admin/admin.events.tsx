@@ -249,8 +249,53 @@ function AdminEvents() {
             <p className="text-sm lg:text-right">
               {e.sold.toLocaleString()} / {e.capacity.toLocaleString()}
             </p>
-            <div className="lg:flex lg:justify-end">
-              <StatusBadge status={e.status as never} />
+            <div className="flex flex-col items-start gap-2 lg:items-end">
+              {(() => {
+                const vis = visibilityOf(e);
+                const meta = visibilityMeta[vis];
+                return (
+                  <>
+                    <span
+                      className={cn(
+                        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[0.68rem] font-medium tracking-[0.08em] uppercase",
+                        meta.className,
+                      )}
+                    >
+                      {vis === "public" ? (
+                        <Eye className="size-3" />
+                      ) : vis === "private" ? (
+                        <EyeOff className="size-3" />
+                      ) : (
+                        <CalendarClock className="size-3" />
+                      )}
+                      {meta.label}
+                    </span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        onClick={() =>
+                          changeVisibility.mutate({ id: e.id, vis: vis === "public" ? "private" : "public" })
+                        }
+                        className="rounded-full border border-border px-3 py-1 text-[0.68rem] text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground"
+                      >
+                        {vis === "public" ? "Make private" : "Publish now"}
+                      </button>
+                      <input
+                        type="datetime-local"
+                        aria-label={`Schedule public launch for ${e.name}`}
+                        value={toLocalInput(e.publish_at)}
+                        onChange={(ev) =>
+                          changeVisibility.mutate({
+                            id: e.id,
+                            vis: ev.target.value ? "scheduled" : "public",
+                            at: ev.target.value ? new Date(ev.target.value).toISOString() : null,
+                          })
+                        }
+                        className="rounded-full border border-border bg-secondary/40 px-3 py-1 text-[0.68rem] text-muted-foreground"
+                      />
+                    </div>
+                  </>
+                );
+              })()}
             </div>
             <button
               aria-label={`Delete ${e.name}`}
