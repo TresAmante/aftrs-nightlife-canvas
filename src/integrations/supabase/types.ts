@@ -31,6 +31,7 @@ export type Database = {
           lineup: string[]
           name: string
           price: number
+          publish_at: string | null
           slug: string
           sold: number
           start_time: string | null
@@ -55,6 +56,7 @@ export type Database = {
           lineup?: string[]
           name: string
           price?: number
+          publish_at?: string | null
           slug: string
           sold?: number
           start_time?: string | null
@@ -79,6 +81,7 @@ export type Database = {
           lineup?: string[]
           name?: string
           price?: number
+          publish_at?: string | null
           slug?: string
           sold?: number
           start_time?: string | null
@@ -260,6 +263,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_dashboard_stats: { Args: never; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
