@@ -68,7 +68,6 @@ function AdminDashboard() {
           <StatCard
             label="Paid orders"
             value={(data?.totalSales ?? 0).toLocaleString()}
-            delta={0}
             icon={CreditCard}
             accent="electric"
           />
@@ -76,27 +75,23 @@ function AdminDashboard() {
           <StatCard
             label="Live events"
             value={(data?.activeEvents ?? 0).toLocaleString()}
-            delta={0}
             icon={CalendarRange}
             accent="electric"
           />
           <StatCard
             label="Scheduled / private"
             value={(data?.scheduledEvents ?? 0).toLocaleString()}
-            delta={0}
             icon={CalendarClock}
           />
           <StatCard
             label="Registered users"
             value={(data?.registeredUsers ?? 0).toLocaleString()}
-            delta={0}
             icon={Users}
             accent="electric"
           />
           <StatCard
             label="Pending payments"
             value={money(data?.pendingPayments ?? 0)}
-            delta={0}
             icon={Activity}
             accent="crimson"
           />
