@@ -15,6 +15,7 @@ import { toast } from "sonner";
 
 import { Aurora } from "@/components/site/Aurora";
 import { CheckoutDialog } from "@/components/site/CheckoutDialog";
+import { EventDescription } from "@/components/site/EventDescription";
 import { Reveal, Stagger, StaggerItem } from "@/components/site/Reveal";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { StatusBadge } from "@/components/site/StatusBadge";
@@ -144,9 +145,10 @@ function EventDetail() {
         <div className="min-w-0">
           <Reveal>
             <h2 className="font-display text-2xl font-extrabold">The night</h2>
-            <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
-              {event.description}
-            </p>
+            <EventDescription
+              text={event.description}
+              className="mt-5 text-lg leading-relaxed text-muted-foreground"
+            />
           </Reveal>
 
           <Reveal className="mt-14">

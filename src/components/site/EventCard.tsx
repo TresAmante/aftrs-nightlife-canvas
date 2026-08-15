@@ -48,7 +48,7 @@ export function EventCard({ event, className }: { event: EventItem; className?: 
         <h3 className="mt-2 font-display text-xl leading-tight font-extrabold sm:text-2xl">
           {event.name}
         </h3>
-        <p className="mt-2.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+        <p className="mt-2.5 line-clamp-1 text-sm leading-relaxed text-muted-foreground">
           {event.tagline} — {event.description}
         </p>
 

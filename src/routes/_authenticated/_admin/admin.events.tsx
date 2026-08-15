@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarClock, Eye, EyeOff, ImagePlus, Loader2, Percent, Plus, Tag, Ticket, Trash2 } from "lucide-react";
+import { CalendarClock, Eye, EyeOff, ImagePlus, Loader as Loader2, Percent, Plus, Tag, Ticket, Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -492,6 +492,48 @@ function AdminEvents() {
                 onChange={(e) => setField("description", e.target.value)}
                 className="rounded-xl bg-secondary/40"
               />
+            </div>
+
+            <div className="space-y-3 rounded-2xl border border-border bg-surface/50 p-4">
+              <p className="flex items-center gap-2 text-sm font-semibold">
+                {visibility === "public" ? (
+                  <Eye className="size-4 text-accent" />
+                ) : visibility === "private" ? (
+                  <EyeOff className="size-4 text-accent" />
+                ) : (
+                  <CalendarClock className="size-4 text-accent" />
+                )}
+                Visibility
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {(["public", "private", "scheduled"] as const).map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => setVisibility(v)}
+                    className={cn(
+                      "rounded-xl border p-3 text-center text-xs font-medium transition-all",
+                      visibility === v
+                        ? "border-primary/60 bg-primary/12 shadow-[0_0_34px_-16px_var(--violet)]"
+                        : "border-border text-muted-foreground hover:border-primary/35 hover:bg-secondary/40",
+                    )}
+                  >
+                    {v === "public" ? "Public now" : v === "private" ? "Private" : "Schedule"}
+                  </button>
+                ))}
+              </div>
+              {visibility === "scheduled" && (
+                <div className="space-y-2">
+                  <Label htmlFor="ev-launch">Launch date &amp; time</Label>
+                  <Input
+                    id="ev-launch"
+                    type="datetime-local"
+                    value={launchAt}
+                    onChange={(e) => setLaunchAt(e.target.value)}
+                    className="h-11 rounded-xl bg-secondary/40"
+                  />
+                </div>
+              )}
             </div>
 
             <div className="space-y-3 rounded-2xl border border-border bg-surface/50 p-4">
