@@ -202,12 +202,12 @@ function Home() {
 
             <Stagger className="mt-14 grid gap-x-10 gap-y-12 sm:grid-cols-3">
               {[
-                { k: "142", l: "Nights programmed" },
-                { k: "310k", l: "Tickets issued" },
-                { k: "0", l: "Booking fees" },
+                { k: "50+", l: "Nights programmed" },
+                { k: "30K+", l: "Tickets issued" },
+                { k: "Minimal", l: "Booking fees" },
               ].map((s) => (
                 <StaggerItem key={s.l}>
-                  <p className="font-display text-[clamp(2.4rem,6vw,3.6rem)] leading-none font-extrabold brand-gradient-text">
+                  <p className="font-display text-[clamp(2.4rem,6vw,3.6rem)] leading-none font-extrabold brand-gradient-text pb-1">
                     {s.k}
                   </p>
                   <p className="mt-3 text-sm text-muted-foreground">{s.l}</p>
