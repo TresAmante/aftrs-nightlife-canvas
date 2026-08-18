@@ -18,8 +18,7 @@ import {
   visibilityOf,
   type Visibility,
 } from "@/lib/events-api";
-import { formatDate, money, promoCodes as seedPromos, type PromoCode } from "@/lib/mock-data";
-import { cn } from "@/lib/utils";
+import { formatDate, money, promoCodes as seedPromos, type PromoCode, cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/_admin/admin/events")({
   head: () => ({

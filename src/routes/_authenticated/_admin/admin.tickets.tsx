@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Banknote, Loader2, Search, Ticket, Users } from "lucide-react";
+import { Banknote, Loader as Loader2, Search, Ticket, Users } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -10,8 +10,9 @@ import { StatusBadge } from "@/components/site/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { formatDate, money } from "@/lib/mock-data";
+import { formatDate, money } from "@/lib/utils";
 import { listAllOrders, summariseBuyers, updateOrderStatus, type TicketOrder } from "@/lib/orders-api";
+
 
 export const Route = createFileRoute("/_authenticated/_admin/admin/tickets")({
   head: () => ({

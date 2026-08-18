@@ -8,8 +8,7 @@ import { StatCard } from "@/components/admin/StatCard";
 import { Reveal } from "@/components/site/Reveal";
 import { Button } from "@/components/ui/button";
 import { fetchAdminStats, relativeTime } from "@/lib/admin-stats";
-import { money } from "@/lib/mock-data";
-import { cn } from "@/lib/utils";
+import { money, cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/_admin/admin/")({
   head: () => ({

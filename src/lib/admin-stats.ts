@@ -64,3 +64,18 @@ export function relativeTime(iso: string) {
   const days = Math.round(hrs / 24);
   return `${days} d ago`;
 }
+
+export type SalesAnalytics = {
+  revenueSeries: { month: string; revenue: number; tickets: number }[];
+  channelSplit: { name: string; value: number }[];
+  topEvents: { name: string; capacity: number; sold: number; revenue: number }[];
+  avgOrderValue: number;
+  refundRate: number;
+  bestMonth: string;
+};
+
+export async function fetchSalesAnalytics(): Promise<SalesAnalytics> {
+  const { data, error } = await supabase.rpc("sales_analytics");
+  if (error) throw error;
+  return data as SalesAnalytics;
+}

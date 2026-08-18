@@ -2,13 +2,19 @@ import { Link } from "@tanstack/react-router";
 import { CalendarDays, MapPin, QrCode } from "lucide-react";
 
 import { StatusBadge } from "@/components/site/StatusBadge";
-import { formatDate, getEvent, type MyTicket } from "@/lib/mock-data";
-import { cn } from "@/lib/utils";
+import { formatDate, cn } from "@/lib/utils";
+import type { EventWithTiers } from "@/lib/events-api";
+import type { TicketOrder } from "@/lib/orders-api";
 
-export function TicketStub({ ticket }: { ticket: MyTicket }) {
-  const event = getEvent(ticket.eventId);
+type TicketView = {
+  order: TicketOrder;
+  event: EventWithTiers | null;
+};
+
+export function TicketStub({ ticket }: { ticket: TicketView }) {
+  const { event, order } = ticket;
   if (!event) return null;
-  const dimmed = ticket.state !== "Valid";
+  const dimmed = order.status !== "Paid";
 
   return (
     <article
@@ -19,7 +25,7 @@ export function TicketStub({ ticket }: { ticket: MyTicket }) {
     >
       <div className="relative">
         <img
-          src={event.image}
+          src={event.image_url ?? ""}
           alt={event.name}
           loading="lazy"
           width={1200}
@@ -30,25 +36,25 @@ export function TicketStub({ ticket }: { ticket: MyTicket }) {
         <div className="relative p-6 sm:p-7">
           <div className="flex items-start justify-between gap-3">
             <p className="text-[0.68rem] tracking-[0.2em] text-muted-foreground uppercase">
-              {event.genre}
+              {event.genre ?? ""}
             </p>
-            <StatusBadge status={ticket.state} />
+            <StatusBadge status={order.status} />
           </div>
           <h3 className="mt-3 font-display text-2xl leading-tight font-extrabold">{event.name}</h3>
           <div className="mt-4 grid gap-2 text-sm text-muted-foreground">
             <span className="flex items-center gap-2">
               <CalendarDays className="size-3.5 text-violet-soft" />
-              {formatDate(event.date)} · {event.time}
+              {formatDate(event.event_date)} · {event.start_time ?? "TBA"}
             </span>
             <span className="flex items-center gap-2">
               <MapPin className="size-3.5 text-violet-soft" />
-              {event.venue}, {event.city}
+              {event.venue ?? "TBA"}, {event.city}
             </span>
           </div>
           <div className="mt-6 flex flex-wrap gap-6">
-            <Stat label="Tier" value={ticket.tier} />
-            <Stat label="Qty" value={String(ticket.qty)} />
-            <Stat label="Seat" value={ticket.seat} />
+            <Stat label="Tier" value={order.tier_name} />
+            <Stat label="Qty" value={String(order.quantity)} />
+            <Stat label="Attendee" value={order.attendee_name} />
           </div>
         </div>
       </div>
@@ -66,11 +72,11 @@ export function TicketStub({ ticket }: { ticket: MyTicket }) {
           <QrCode className="size-16 text-violet-soft" strokeWidth={1.1} />
         </div>
         <p className="font-mono text-[0.72rem] tracking-[0.14em] text-muted-foreground">
-          {ticket.code}
+          {order.order_ref}
         </p>
         <Link
           to="/events/$eventId"
-          params={{ eventId: event.id }}
+          params={{ eventId: event.slug }}
           className="text-xs text-violet-soft underline-offset-4 hover:underline"
         >
           Event details

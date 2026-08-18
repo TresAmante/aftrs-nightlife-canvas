@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Download, Receipt, Search } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 import { Aurora } from "@/components/site/Aurora";
 import { Reveal } from "@/components/site/Reveal";
@@ -8,7 +9,8 @@ import { SiteLayout } from "@/components/site/SiteLayout";
 import { StatusBadge } from "@/components/site/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { formatDate, money, purchases } from "@/lib/mock-data";
+import { formatDate, money } from "@/lib/utils";
+import { listAllOrders, type TicketOrder } from "@/lib/orders-api";
 
 export const Route = createFileRoute("/_authenticated/purchases")({
   head: () => ({
@@ -27,14 +29,19 @@ export const Route = createFileRoute("/_authenticated/purchases")({
 
 function PurchasesPage() {
   const [q, setQ] = useState("");
+  const { data: orders = [], isLoading } = useQuery({ queryKey: ["ticket-orders"], queryFn: listAllOrders });
+
   const rows = useMemo(
     () =>
-      purchases.filter((p) =>
-        `${p.id} ${p.event} ${p.method} ${p.status}`.toLowerCase().includes(q.toLowerCase()),
+      orders.filter((o) =>
+        `${o.order_ref} ${o.event_name} ${o.payment_method} ${o.status}`.toLowerCase().includes(q.toLowerCase()),
       ),
-    [q],
+    [orders, q],
   );
-  const total = purchases.filter((p) => p.status === "Paid").reduce((s, p) => s + p.amount, 0);
+
+  const paid = orders.filter((o) => o.status === "Paid");
+  const total = paid.reduce((s, o) => s + o.total, 0);
+  const nightsAttended = new Set(paid.map((o: TicketOrder) => o.event_id)).size;
 
   return (
     <SiteLayout>
@@ -49,8 +56,8 @@ function PurchasesPage() {
           <div className="mt-12 grid gap-4 sm:grid-cols-3">
             {[
               { l: "Lifetime spend", v: money(total) },
-              { l: "Orders", v: String(purchases.length) },
-              { l: "Nights attended", v: "11" },
+              { l: "Orders", v: String(orders.length) },
+              { l: "Nights attended", v: String(nightsAttended) },
             ].map((s, i) => (
               <Reveal key={s.l} delay={i * 0.06} className="rounded-3xl border border-border bg-surface/60 p-6">
                 <p className="text-[0.62rem] tracking-[0.18em] text-muted-foreground uppercase">
@@ -89,36 +96,45 @@ function PurchasesPage() {
             <span className="text-right">Status</span>
           </div>
 
-          {rows.length === 0 && (
+          {isLoading && (
+            <div className="space-y-3 p-6">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="h-14 animate-pulse rounded-2xl bg-surface-2/60" />
+              ))}
+            </div>
+          )}
+
+          {!isLoading && rows.length === 0 && (
             <div className="px-6 py-20 text-center">
               <Receipt className="mx-auto size-7 text-muted-foreground" />
               <p className="mt-4 font-display font-extrabold">No orders match that search</p>
             </div>
           )}
 
-          {rows.map((p, i) => (
-            <Reveal
-              key={p.id}
-              delay={i * 0.04}
-              className="grid gap-2 border-t border-border bg-surface/40 px-6 py-5 transition-colors hover:bg-surface-2/50 md:grid-cols-[1fr_1.4fr_1.2fr_0.8fr_0.9fr] md:items-center md:gap-4"
-            >
-              <div>
-                <p className="font-mono text-xs text-muted-foreground">{p.id}</p>
-                <p className="mt-1 text-xs text-muted-foreground md:hidden">{formatDate(p.date)}</p>
-              </div>
-              <div className="min-w-0">
-                <p className="truncate font-semibold">{p.event}</p>
-                <p className="mt-0.5 hidden text-xs text-muted-foreground md:block">
-                  {formatDate(p.date)}
-                </p>
-              </div>
-              <p className="text-sm text-muted-foreground">{p.method}</p>
-              <p className="font-display font-extrabold md:text-right">{money(p.amount)}</p>
-              <div className="md:flex md:justify-end">
-                <StatusBadge status={p.status} />
-              </div>
-            </Reveal>
-          ))}
+          {!isLoading &&
+            rows.map((o, i) => (
+              <Reveal
+                key={o.id}
+                delay={i * 0.04}
+                className="grid gap-2 border-t border-border bg-surface/40 px-6 py-5 transition-colors hover:bg-surface-2/50 md:grid-cols-[1fr_1.4fr_1.2fr_0.8fr_0.9fr] md:items-center md:gap-4"
+              >
+                <div>
+                  <p className="font-mono text-xs text-muted-foreground">{o.order_ref}</p>
+                  <p className="mt-1 text-xs text-muted-foreground md:hidden">{formatDate(o.created_at)}</p>
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate font-semibold">{o.event_name}</p>
+                  <p className="mt-0.5 hidden text-xs text-muted-foreground md:block">
+                    {formatDate(o.created_at)}
+                  </p>
+                </div>
+                <p className="text-sm text-muted-foreground">{o.payment_method}</p>
+                <p className="font-display font-extrabold md:text-right">{money(o.total)}</p>
+                <div className="md:flex md:justify-end">
+                  <StatusBadge status={o.status} />
+                </div>
+              </Reveal>
+            ))}
         </div>
       </section>
     </SiteLayout>

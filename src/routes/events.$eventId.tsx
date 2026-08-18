@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 
 import { Aurora } from "@/components/site/Aurora";
 import { CheckoutDialog } from "@/components/site/CheckoutDialog";
@@ -21,12 +22,12 @@ import { SiteLayout } from "@/components/site/SiteLayout";
 import { StatusBadge } from "@/components/site/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { events, formatDate, getEvent, money, schedule, tiers } from "@/lib/mock-data";
-import { cn } from "@/lib/utils";
+import { getPublicEvent, listPublicEvents } from "@/lib/events-api";
+import { formatDate, money, cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/events/$eventId")({
-  loader: ({ params }) => {
-    const event = getEvent(params.eventId);
+  loader: async ({ params }) => {
+    const event = await getPublicEvent(params.eventId);
     if (!event) throw notFound();
     return { event };
   },
@@ -37,8 +38,8 @@ export const Route = createFileRoute("/events/$eventId")({
       };
     }
     const { event } = loaderData;
-    const title = `${event.name} — ${event.venue}, ${event.city} | AFTRS`;
-    const description = `${event.tagline}. ${formatDate(event.date)} at ${event.venue}, ${event.city}. Tickets from ${event.currency}${event.price}.`;
+    const title = `${event.name} — ${event.venue ?? event.city} | AFTRS`;
+    const description = `${event.tagline ?? ""}. ${formatDate(event.event_date)} at ${event.venue ?? "TBA"}, ${event.city}. Tickets from ${money(event.price)}.`;
     return {
       meta: [
         { title },
@@ -70,19 +71,31 @@ function EventMissing() {
 
 function EventDetail() {
   const { event } = Route.useLoaderData();
-  const [tier, setTier] = useState(tiers[1]!.name);
+  const { data: allEvents = [] } = useQuery({ queryKey: ["public-events"], queryFn: listPublicEvents });
+
+  const tiers = event.tiers;
+  const [tier, setTier] = useState(tiers[1]?.name ?? tiers[0]?.name ?? "");
   const [qty, setQty] = useState(2);
   const [checkout, setCheckout] = useState(false);
-  const selected = tiers.find((t) => t.name === tier)!;
-  const related = events.filter((e) => e.id !== event.id).slice(0, 3);
+  const selected = tiers.find((t) => t.name === tier) ?? tiers[0];
+  const related = allEvents.filter((e) => e.id !== event.id).slice(0, 3);
+
+  const schedule = [
+    { time: event.doors_time ?? "22:30", title: "Doors & welcome bar", detail: `Entrance at ${event.venue ?? "the venue"}` },
+    { time: event.start_time ?? "23:00", title: "Opening set", detail: "Main room" },
+    { time: "00:15", title: "Back to back", detail: "90 minutes" },
+    { time: "01:45", title: "Live hardware set", detail: "Main room" },
+    { time: "03:00", title: "Headline — closing", detail: "Main room" },
+    { time: "05:00", title: "Last call", detail: "Cloakroom open until 05:30" },
+  ];
 
   return (
     <SiteLayout>
       {/* Banner */}
       <section className="relative h-[68svh] min-h-[30rem] overflow-hidden">
         <img
-          src={event.image}
-          alt={`${event.name} at ${event.venue}`}
+          src={event.image_url ?? ""}
+          alt={`${event.name} at ${event.venue ?? ""}`}
           width={1200}
           height={900}
           className="absolute inset-0 h-full w-full object-cover"
@@ -105,7 +118,7 @@ function EventDetail() {
             <div className="flex flex-wrap items-center gap-3">
               <StatusBadge status={event.status} />
               <span className="text-[0.7rem] tracking-[0.2em] text-muted-foreground uppercase">
-                {event.genre}
+                {event.genre ?? ""}
               </span>
             </div>
             <h1 className="mt-5 max-w-4xl font-display text-[clamp(2.4rem,7.5vw,5.4rem)] leading-[0.94] font-extrabold">
@@ -120,8 +133,8 @@ function EventDetail() {
       <div className="border-y border-border bg-ink">
         <div className="mx-auto grid max-w-6xl grid-cols-2 gap-px px-5 sm:px-8 lg:grid-cols-4">
           {[
-            { icon: CalendarDays, label: "Date", value: formatDate(event.date) },
-            { icon: Clock, label: "Doors", value: `${event.doors} — late` },
+            { icon: CalendarDays, label: "Date", value: formatDate(event.event_date) },
+            { icon: Clock, label: "Doors", value: `${event.doors_time ?? "22:30"} — late` },
             { icon: Users, label: "Capacity", value: event.capacity.toLocaleString() },
             { icon: ShieldCheck, label: "Entry", value: "18+ · ID required" },
           ].map((f) => (
@@ -146,7 +159,7 @@ function EventDetail() {
           <Reveal>
             <h2 className="font-display text-2xl font-extrabold">The night</h2>
             <EventDescription
-              text={event.description}
+              text={event.description ?? ""}
               className="mt-5 text-lg leading-relaxed text-muted-foreground"
             />
           </Reveal>
@@ -156,7 +169,7 @@ function EventDetail() {
               Lineup
             </h3>
             <div className="mt-6 flex flex-wrap gap-2.5">
-              {event.lineup.map((a: string, i: number) => (
+              {(event.lineup ?? []).map((a: string, i: number) => (
                 <span
                   key={a}
                   className={cn(
@@ -202,8 +215,8 @@ function EventDetail() {
               <span className="absolute top-1/2 left-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-crimson shadow-[0_0_26px_var(--crimson)]" />
             </div>
             <div className="p-7">
-              <h3 className="font-display text-xl font-extrabold">{event.venue}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">{event.address}</p>
+              <h3 className="font-display text-xl font-extrabold">{event.venue ?? "Venue TBA"}</h3>
+              <p className="mt-2 text-sm text-muted-foreground">{event.address ?? "Address TBA"}</p>
               <p className="mt-1 text-sm text-muted-foreground">{event.city}</p>
               <div className="mt-5 flex flex-wrap gap-2">
                 {["Cloakroom", "Step-free access", "Card only bar", "Smoking terrace"].map((t) => (
@@ -246,8 +259,7 @@ function EventDetail() {
                 Tickets
               </p>
               <p className="mt-2 font-display text-3xl font-extrabold">
-                {event.currency}
-                {event.price}
+                {money(event.price)}
                 <span className="ml-2 text-sm font-normal text-muted-foreground">onwards</span>
               </p>
             </div>
@@ -257,7 +269,7 @@ function EventDetail() {
                 const active = t.name === tier;
                 return (
                   <button
-                    key={t.name}
+                    key={t.id}
                     onClick={() => setTier(t.name)}
                     className={cn(
                       "w-full rounded-2xl border p-4 text-left transition-all duration-300",
@@ -271,7 +283,7 @@ function EventDetail() {
                       <span className="font-display font-extrabold">{money(t.price)}</span>
                     </div>
                     <ul className="mt-3 space-y-1.5">
-                      {t.perks.map((p) => (
+                      {(t.perks ?? []).map((p) => (
                         <li
                           key={p}
                           className="flex items-start gap-2 text-xs text-muted-foreground"
@@ -281,9 +293,6 @@ function EventDetail() {
                         </li>
                       ))}
                     </ul>
-                    <p className="mt-3 text-[0.68rem] tracking-[0.12em] text-crimson uppercase">
-                      {t.left} left
-                    </p>
                   </button>
                 );
               })}
@@ -316,16 +325,16 @@ function EventDetail() {
               <Separator className="my-2" />
 
               <div className="space-y-2 text-sm">
-                <Row label={`${selected.name} × ${qty}`} value={money(selected.price * qty)} />
+                <Row label={`${selected?.name ?? ""} × ${qty}`} value={money((selected?.price ?? 0) * qty)} />
                 <Row label="Booking fee" value="Free" muted />
-                <Row label="Total" value={money(selected.price * qty)} bold />
+                <Row label="Total" value={money((selected?.price ?? 0) * qty)} bold />
               </div>
 
               <Button
                 variant="hero"
                 size="lg"
                 className="mt-2 w-full"
-                disabled={event.status === "Sold out"}
+                disabled={event.status === "Sold out" || !selected}
                 onClick={() => setCheckout(true)}
               >
                 {event.status === "Sold out" ? "Sold out" : "Pay with GCash or bank"}
@@ -337,7 +346,7 @@ function EventDetail() {
                 disabled={event.status === "Sold out"}
                 onClick={() =>
                   toast.success("Added to your basket", {
-                    description: `${qty} × ${selected.name} · ${event.name}`,
+                    description: `${qty} × ${selected?.name ?? ""} · ${event.name}`,
                   })
                 }
               >
@@ -351,9 +360,10 @@ function EventDetail() {
                 open={checkout}
                 onOpenChange={setCheckout}
                 eventName={event.name}
-                tier={selected.name}
+                eventId={event.id}
+                tier={selected?.name ?? ""}
                 qty={qty}
-                total={selected.price * qty}
+                total={(selected?.price ?? 0) * qty}
               />
             </div>
           </Reveal>
@@ -371,11 +381,11 @@ function EventDetail() {
               <Reveal key={r.id} delay={i * 0.07}>
                 <Link
                   to="/events/$eventId"
-                  params={{ eventId: r.id }}
+                  params={{ eventId: r.slug }}
                   className="group relative block h-56 overflow-hidden rounded-3xl border border-border"
                 >
                   <img
-                    src={r.image}
+                    src={r.image_url ?? ""}
                     alt={r.name}
                     loading="lazy"
                     width={1200}
@@ -385,7 +395,7 @@ function EventDetail() {
                   <div className="absolute inset-0 bg-gradient-to-t from-ink to-transparent" />
                   <div className="absolute bottom-0 p-5">
                     <p className="text-[0.62rem] tracking-[0.18em] text-violet-soft uppercase">
-                      {formatDate(r.date)}
+                      {formatDate(r.event_date)}
                     </p>
                     <p className="mt-1.5 font-display text-lg font-extrabold">{r.name}</p>
                   </div>

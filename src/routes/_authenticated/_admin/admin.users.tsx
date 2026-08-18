@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { adminUsers, formatDate, money, type AdminUser } from "@/lib/mock-data";
+import { formatDate, money, adminUsers, type AdminUser } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/_admin/admin/users")({
   head: () => ({

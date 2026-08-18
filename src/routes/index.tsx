@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion, useScroll, useTransform } from "motion/react";
 import { ArrowRight, ArrowUpRight, MapPin, Sparkles } from "lucide-react";
 import { useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 import heroImg from "@/assets/hero.jpg";
 import { Aurora } from "@/components/site/Aurora";
@@ -9,7 +10,8 @@ import { Reveal, Stagger, StaggerItem } from "@/components/site/Reveal";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { StatusBadge } from "@/components/site/StatusBadge";
 import { Button } from "@/components/ui/button";
-import { events, formatDate, formatDay, formatMonth, type EventItem } from "@/lib/mock-data";
+import { listPublicEvents, type EventWithTiers } from "@/lib/events-api";
+import { formatDate, formatDay, formatMonth, money } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -31,7 +33,12 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
+function useEvents() {
+  return useQuery({ queryKey: ["public-events"], queryFn: listPublicEvents });
+}
+
 function Home() {
+  const { data: events = [] } = useEvents();
   const featured = events.filter((e) => e.featured);
   const upcoming = events.slice(0, 5);
   const heroRef = useRef<HTMLDivElement>(null);
@@ -114,7 +121,7 @@ function Home() {
 
         {/* Marquee ticker */}
         <div className="absolute inset-x-0 bottom-0 overflow-hidden border-y border-border bg-ink/60 py-3 backdrop-blur-md">
-          <div className="flex w-max animate-[sheen_0s] gap-10">
+          <div className="flex w-max gap-10">
             <motion.div
               className="flex gap-10 pr-10"
               animate={{ x: ["0%", "-50%"] }}
@@ -126,7 +133,7 @@ function Home() {
                   className="flex items-center gap-3 text-[0.7rem] tracking-[0.22em] whitespace-nowrap text-muted-foreground uppercase"
                 >
                   <span className="h-1 w-1 rounded-full bg-violet" />
-                  {e.city} · {e.name} · {formatDate(e.date)}
+                  {e.city} · {e.name} · {formatDate(e.event_date)}
                 </span>
               ))}
             </motion.div>
@@ -245,35 +252,34 @@ function Home() {
             <StaggerItem key={e.id}>
               <Link
                 to="/events/$eventId"
-                params={{ eventId: e.id }}
+                params={{ eventId: e.slug }}
                 className="group grid grid-cols-[3.2rem_minmax(0,1fr)_auto] items-center gap-4 border-b border-border py-6 transition-colors hover:bg-surface/50 sm:grid-cols-[4rem_minmax(0,1.4fr)_minmax(0,1fr)_auto_auto] sm:gap-8 sm:px-4"
               >
                 <div className="text-center">
                   <p className="font-display text-2xl leading-none font-extrabold">
-                    {formatDay(e.date)}
+                    {formatDay(e.event_date)}
                   </p>
                   <p className="mt-1 text-[0.6rem] tracking-[0.16em] text-muted-foreground">
-                    {formatMonth(e.date)}
+                    {formatMonth(e.event_date)}
                   </p>
                 </div>
                 <div className="min-w-0">
                   <p className="truncate font-display text-lg font-extrabold sm:text-xl">
                     {e.name}
                   </p>
-                  <p className="mt-1 truncate text-xs text-muted-foreground">{e.lineup.join(" · ")}</p>
+                  <p className="mt-1 truncate text-xs text-muted-foreground">{(e.lineup ?? []).join(" · ")}</p>
                 </div>
                 <p className="hidden min-w-0 items-center gap-1.5 text-sm text-muted-foreground sm:flex">
                   <MapPin className="size-3.5 shrink-0 text-violet-soft" />
                   <span className="truncate">
-                    {e.venue}, {e.city}
+                    {e.venue ?? "TBA"}, {e.city}
                   </span>
                 </p>
                 <div className="hidden sm:block">
                   <StatusBadge status={e.status} />
                 </div>
                 <span className="flex items-center gap-2 font-display text-sm font-extrabold">
-                  {e.currency}
-                  {e.price}
+                  {money(e.price)}
                   <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-foreground" />
                 </span>
               </Link>
@@ -313,19 +319,19 @@ function Home() {
   );
 }
 
-function FeatureTile({ event, tall = false }: { event: EventItem | undefined; tall?: boolean }) {
+function FeatureTile({ event, tall = false }: { event: EventWithTiers | undefined; tall?: boolean }) {
   if (!event) return null;
   return (
     <Link
       to="/events/$eventId"
-      params={{ eventId: event.id }}
+      params={{ eventId: event.slug }}
       className={`group relative block overflow-hidden rounded-3xl border border-border ${
         tall ? "h-[26rem] lg:h-[38rem]" : "h-[18rem]"
       }`}
     >
       <img
-        src={event.image}
-        alt={`${event.name} — ${event.venue}`}
+        src={event.image_url ?? ""}
+        alt={`${event.name} — ${event.venue ?? ""}`}
         loading="lazy"
         width={1200}
         height={900}
@@ -336,7 +342,7 @@ function FeatureTile({ event, tall = false }: { event: EventItem | undefined; ta
       <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-6 sm:p-8">
         <div className="min-w-0">
           <p className="text-[0.66rem] tracking-[0.2em] text-violet-soft uppercase">
-            {formatDate(event.date)} · {event.city}
+            {formatDate(event.event_date)} · {event.city}
           </p>
           <h3
             className={`mt-2 font-display leading-[1.02] font-extrabold ${tall ? "text-3xl sm:text-5xl" : "text-2xl sm:text-3xl"}`}

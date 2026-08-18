@@ -1,15 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Ticket as TicketIcon } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 import { Aurora } from "@/components/site/Aurora";
 import { Reveal } from "@/components/site/Reveal";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { TicketStub } from "@/components/site/TicketStub";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { myTickets } from "@/lib/mock-data";
+import { listPublicEvents, type EventWithTiers } from "@/lib/events-api";
+import { listAllOrders, type TicketOrder } from "@/lib/orders-api";
 
 export const Route = createFileRoute("/_authenticated/tickets")({
   head: () => ({
@@ -27,9 +28,32 @@ export const Route = createFileRoute("/_authenticated/tickets")({
   component: TicketsPage,
 });
 
+type TicketView = { order: TicketOrder; event: EventWithTiers | null };
+
 function TicketsPage() {
   const [tab, setTab] = useState<"upcoming" | "past">("upcoming");
-  const list = myTickets.filter((t) => (tab === "upcoming" ? t.state === "Valid" : t.state !== "Valid"));
+
+  const { data: orders = [] } = useQuery({ queryKey: ["ticket-orders"], queryFn: listAllOrders });
+  const { data: events = [] } = useQuery({ queryKey: ["public-events"], queryFn: listPublicEvents });
+
+  const eventMap = useMemo(() => {
+    const m = new Map<string, EventWithTiers>();
+    for (const e of events) m.set(e.id, e);
+    return m;
+  }, [events]);
+
+  const tickets: TicketView[] = useMemo(
+    () =>
+      orders.map((order) => ({
+        order,
+        event: order.event_id ? (eventMap.get(order.event_id) ?? null) : null,
+      })),
+    [orders, eventMap],
+  );
+
+  const list = tickets.filter((t) =>
+    tab === "upcoming" ? t.order.status === "Paid" : t.order.status !== "Paid",
+  );
 
   return (
     <SiteLayout>
@@ -61,7 +85,7 @@ function TicketsPage() {
         {list.length > 0 ? (
           <div className="space-y-6">
             {list.map((t, i) => (
-              <Reveal key={t.id} delay={i * 0.06}>
+              <Reveal key={t.order.id} delay={i * 0.06}>
                 <TicketStub ticket={t} />
               </Reveal>
             ))}
@@ -69,25 +93,6 @@ function TicketsPage() {
         ) : (
           <EmptyWallet />
         )}
-
-        {/* Loading pattern reference */}
-        <div className="mt-16">
-          <p className="text-[0.66rem] tracking-[0.2em] text-muted-foreground uppercase">
-            Syncing more entries
-          </p>
-          <div className="mt-5 grid gap-4 sm:grid-cols-2">
-            {[0, 1].map((i) => (
-              <div key={i} className="flex gap-5 rounded-3xl border border-border bg-surface/40 p-6">
-                <Skeleton className="h-20 w-20 shrink-0 rounded-2xl bg-secondary/60" />
-                <div className="flex-1 space-y-3">
-                  <Skeleton className="h-4 w-2/3 bg-secondary/60" />
-                  <Skeleton className="h-3 w-1/2 bg-secondary/50" />
-                  <Skeleton className="h-3 w-1/3 bg-secondary/40" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
       </section>
     </SiteLayout>
   );

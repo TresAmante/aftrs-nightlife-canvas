@@ -1,4 +1,4 @@
-import { Building2, Check, Copy, Loader2, Smartphone } from "lucide-react";
+import { Building2, Check, Copy, Loader as Loader2, Smartphone } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -8,9 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
-import { money } from "@/lib/mock-data";
 import { createOrder } from "@/lib/orders-api";
-import { cn } from "@/lib/utils";
+import { money, cn } from "@/lib/utils";
 
 type Props = {
   open: boolean;

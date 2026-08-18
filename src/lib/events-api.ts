@@ -143,6 +143,19 @@ export async function createEvent(input: NewEventInput): Promise<string> {
   return eventId;
 }
 
+export async function listPublicEvents(): Promise<EventWithTiers[]> {
+  const all = await listEvents();
+  const now = Date.now();
+  return all.filter(
+    (e) => e.status !== "Draft" && (!e.publish_at || new Date(e.publish_at).getTime() <= now),
+  );
+}
+
+export async function getPublicEvent(slug: string): Promise<EventWithTiers | null> {
+  const all = await listPublicEvents();
+  return all.find((e) => e.slug === slug || e.id === slug) ?? null;
+}
+
 export async function deleteEvent(id: string) {
   const { error } = await supabase.from("events").delete().eq("id", id);
   if (error) throw error;
