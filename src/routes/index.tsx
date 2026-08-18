@@ -207,7 +207,7 @@ function Home() {
                 { k: "Minimal", l: "Booking fees" },
               ].map((s) => (
                 <StaggerItem key={s.l}>
-                  <p className="font-display text-[clamp(2.4rem,6vw,3.6rem)] leading-none font-extrabold brand-gradient-text pb-1">
+                  <p className="whitespace-nowrap font-display text-[clamp(2.15rem,4vw,2.8rem)] leading-tight font-extrabold brand-gradient-text pb-1">
                     {s.k}
                   </p>
                   <p className="mt-3 text-sm text-muted-foreground">{s.l}</p>
