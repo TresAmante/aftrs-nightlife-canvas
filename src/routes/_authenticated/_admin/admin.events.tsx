@@ -18,7 +18,13 @@ import {
   visibilityOf,
   type Visibility,
 } from "@/lib/events-api";
-import { formatDate, money, promoCodes as seedPromos, type PromoCode, cn } from "@/lib/utils";
+import { formatDate, money, cn } from "@/lib/utils";
+import {
+  listPromoCodes,
+  createPromoCode,
+  togglePromoCode,
+  type PromoCodeRow,
+} from "@/lib/promo-api";
 
 export const Route = createFileRoute("/_authenticated/_admin/admin/events")({
   head: () => ({
@@ -75,7 +81,10 @@ function AdminEvents() {
   const [promos, setPromos] = useState<{ code: string; type: "percent" | "fixed"; value: string }[]>([
     { code: "EARLYBIRD", type: "percent", value: "15" },
   ]);
-  const [codes, setCodes] = useState<PromoCode[]>(seedPromos);
+  const { data: codes = [], isLoading: codesLoading } = useQuery({
+    queryKey: ["admin-promo-codes"],
+    queryFn: listPromoCodes,
+  });
 
   const setField = (key: keyof typeof form, v: string) => setForm((f) => ({ ...f, [key]: v }));
   const setTier = (i: number, key: "name" | "price", v: string) =>
@@ -111,7 +120,7 @@ function AdminEvents() {
       const cleanTiers = tiers
         .filter((t) => t.name.trim() && t.price)
         .map((t) => ({ name: t.name.trim(), price: Number(t.price) }));
-      return createEvent({
+      const result = await createEvent({
         name: form.name.trim(),
         city: form.city.trim(),
         venue: form.venue.trim(),
@@ -126,24 +135,23 @@ function AdminEvents() {
         imageFile,
         tiers: cleanTiers,
       });
-    },
-    onSuccess: (_id, _v) => {
-      const fresh = promos
-        .filter((p) => p.code.trim() && p.value)
-        .map((p, i) => ({
-          id: `P-new-${Date.now()}-${i}`,
+      const freshPromos = promos.filter((p) => p.code.trim() && p.value);
+      for (const p of freshPromos) {
+        await createPromoCode({
           code: p.code.trim(),
           promoter: "AFTRS Crew",
-          event: form.name || "New event",
+          event_name: form.name || null,
           type: p.type,
           value: Number(p.value),
-          used: 0,
-          limit: 100,
+          max_uses: 100,
           expires: new Date().toISOString().slice(0, 10),
-          active: true,
-        }));
-      if (fresh.length) setCodes((c) => [...fresh, ...c]);
+        });
+      }
+      return result;
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-events"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-promo-codes"] });
       toast.success("Event published", { description: `${tiers.length} ticket tiers saved` });
       setOpen(false);
       resetForm();
@@ -329,6 +337,14 @@ function AdminEvents() {
             <span>Redeemed</span>
             <span className="text-right">State</span>
           </div>
+          {codesLoading && (
+            <p className="border-t border-border px-6 py-16 text-center text-sm text-muted-foreground">Loading promo codes…</p>
+          )}
+          {!codesLoading && codes.length === 0 && (
+            <p className="border-t border-border px-6 py-16 text-center text-sm text-muted-foreground">
+              No promo codes yet. Create one from the event form.
+            </p>
+          )}
           {codes.map((c) => (
             <div
               key={c.id}
@@ -338,26 +354,28 @@ function AdminEvents() {
                 {c.code}
               </span>
               <p className="text-sm text-muted-foreground">{c.promoter}</p>
-              <p className="truncate text-sm text-muted-foreground">{c.event}</p>
+              <p className="truncate text-sm text-muted-foreground">{c.event_name ?? "All events"}</p>
               <p className="text-sm font-semibold brand-gradient-text">
                 {c.type === "percent" ? `${c.value}% off` : `${money(c.value)} off`}
               </p>
               <div className="min-w-0">
                 <p className="text-xs text-muted-foreground">
-                  {c.used} / {c.limit} · expires {formatDate(c.expires)}
+                  {c.used} / {c.max_uses}{c.expires ? ` · expires ${formatDate(c.expires)}` : ""}
                 </p>
                 <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-secondary">
                   <div
                     className="h-full rounded-full [background-image:var(--gradient-brand)]"
-                    style={{ width: `${Math.min(100, Math.round((c.used / c.limit) * 100))}%` }}
+                    style={{ width: `${Math.min(100, Math.round((c.used / c.max_uses) * 100))}%` }}
                   />
                 </div>
               </div>
               <div className="lg:flex lg:justify-end">
                 <button
-                  onClick={() =>
-                    setCodes((prev) => prev.map((x) => (x.id === c.id ? { ...x, active: !x.active } : x)))
-                  }
+                  onClick={() => {
+                    togglePromoCode(c.id, !c.active)
+                      .then(() => queryClient.invalidateQueries({ queryKey: ["admin-promo-codes"] }))
+                      .catch((e: Error) => toast.error("Could not update promo code", { description: e.message }));
+                  }}
                   className={cn(
                     "rounded-full border px-3 py-1 text-[0.68rem] tracking-[0.12em] uppercase transition-colors",
                     c.active

@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Search, UserPlus } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { AdminShell } from "@/components/admin/AdminShell";
 import { StatusBadge } from "@/components/site/StatusBadge";
@@ -8,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { formatDate, money, adminUsers, type AdminUser } from "@/lib/utils";
+import { formatDate, money } from "@/lib/utils";
+import { fetchAdminUsers, updateUserStatus, updateUserTier, type AdminUserRow } from "@/lib/users-api";
 
 export const Route = createFileRoute("/_authenticated/_admin/admin/users")({
   head: () => ({
@@ -25,22 +28,54 @@ export const Route = createFileRoute("/_authenticated/_admin/admin/users")({
 function AdminUsers() {
   const [q, setQ] = useState("");
   const [tier, setTier] = useState("All tiers");
-  const [active, setActive] = useState<AdminUser | null>(null);
+  const [active, setActive] = useState<AdminUserRow | null>(null);
+  const qc = useQueryClient();
+
+  const { data: users, isLoading } = useQuery({
+    queryKey: ["admin-users"],
+    queryFn: fetchAdminUsers,
+  });
+
+  const invalidate = () => qc.invalidateQueries({ queryKey: ["admin-users"] });
 
   const rows = useMemo(
     () =>
-      adminUsers.filter(
+      (users ?? []).filter(
         (u) =>
           (tier === "All tiers" || u.tier === tier) &&
           `${u.name} ${u.email} ${u.city} ${u.id}`.toLowerCase().includes(q.toLowerCase()),
       ),
-    [q, tier],
+    [users, q, tier],
   );
+
+  const handleGrantPriority = async () => {
+    if (!active) return;
+    try {
+      await updateUserTier(active.id, "Priority");
+      toast.success(`${active.name} upgraded to Priority`);
+      setActive({ ...active, tier: "Priority" });
+      invalidate();
+    } catch {
+      toast.error("Failed to update tier");
+    }
+  };
+
+  const handleSuspend = async () => {
+    if (!active) return;
+    try {
+      await updateUserStatus(active.id, "Suspended");
+      toast.success(`${active.name} suspended`);
+      setActive({ ...active, status: "Suspended" });
+      invalidate();
+    } catch {
+      toast.error("Failed to update status");
+    }
+  };
 
   return (
     <AdminShell
       title="User management"
-      subtitle={`${adminUsers.length} member accounts`}
+      subtitle={`${users?.length ?? 0} member accounts`}
       actions={
         <Button variant="hero" size="sm">
           <UserPlus /> Invite
@@ -81,7 +116,10 @@ function AdminUsers() {
           <span className="text-right">Spend</span>
           <span className="text-right">Status</span>
         </div>
-        {rows.map((u) => (
+        {isLoading && (
+          <p className="px-6 py-16 text-center text-sm text-muted-foreground">Loading members…</p>
+        )}
+        {!isLoading && rows.map((u) => (
           <button
             key={u.id}
             onClick={() => setActive(u)}
@@ -105,7 +143,7 @@ function AdminUsers() {
             </div>
           </button>
         ))}
-        {rows.length === 0 && (
+        {!isLoading && rows.length === 0 && (
           <p className="border-t border-border px-6 py-16 text-center text-sm text-muted-foreground">
             No members match that search.
           </p>
@@ -122,7 +160,7 @@ function AdminUsers() {
               <p className="text-sm text-muted-foreground">{active.email}</p>
               <div className="grid grid-cols-2 gap-4">
                 {[
-                  ["Member ID", active.id],
+                  ["Member ID", active.id.slice(0, 8)],
                   ["City", active.city],
                   ["Tier", active.tier],
                   ["Joined", formatDate(active.joined)],
@@ -136,9 +174,9 @@ function AdminUsers() {
                 ))}
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button variant="hero" size="sm">Grant Priority</Button>
+                <Button variant="hero" size="sm" onClick={handleGrantPriority}>Grant Priority</Button>
                 <Button variant="glass" size="sm">Send message</Button>
-                <Button variant="outline" size="sm" className="text-destructive">Suspend</Button>
+                <Button variant="outline" size="sm" className="text-destructive" onClick={handleSuspend}>Suspend</Button>
               </div>
             </div>
           )}

@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
 import { createOrder } from "@/lib/orders-api";
+import { validatePromoCode } from "@/lib/promo-api";
 import { money, cn } from "@/lib/utils";
 
 type Props = {
@@ -44,9 +45,10 @@ export function CheckoutDialog({ open, onOpenChange, eventName, eventId, tier, q
   const [mobile, setMobile] = useState("");
   const [bank, setBank] = useState("BPI");
   const [promo, setPromo] = useState("");
-  const [applied, setApplied] = useState(0);
+  const [applied, setApplied] = useState<{ type: "percent" | "fixed"; value: number } | null>(null);
   const [attendee, setAttendee] = useState("");
   const [saving, setSaving] = useState(false);
+  const [promoBusy, setPromoBusy] = useState(false);
 
   const defaultAttendee =
     [profile?.first_name, profile?.last_name].filter(Boolean).join(" ").trim() ||
@@ -71,7 +73,7 @@ export function CheckoutDialog({ open, onOpenChange, eventName, eventId, tier, q
         discount,
         total: due,
         paymentMethod: method === "gcash" ? "GCash" : `${bank} transfer`,
-        promoCode: applied > 0 ? promo.trim().toUpperCase() : null,
+        promoCode: applied ? promo.trim().toUpperCase() : null,
         status: method === "gcash" ? "Paid" : "Pending",
       });
       onOpenChange(false);
@@ -88,19 +90,35 @@ export function CheckoutDialog({ open, onOpenChange, eventName, eventId, tier, q
     }
   };
 
-  const discount = Math.round(total * applied);
+  const discount = applied
+    ? applied.type === "percent"
+      ? Math.round(total * (applied.value / 100))
+      : Math.min(applied.value * qty, total)
+    : 0;
   const due = total - discount;
   const reference = "AFTRS-" + String(Math.abs(total * qty)).padStart(6, "0").slice(-6);
 
-  const applyPromo = () => {
+  const applyPromo = async () => {
     const code = promo.trim().toUpperCase();
-    const table: Record<string, number> = { NARI20: 0.2, FINALE10: 0.1, EARLYBIRD: 0.15 };
-    if (table[code]) {
-      setApplied(table[code]);
-      toast.success(`Promo ${code} applied`, { description: `${table[code] * 100}% off this order` });
-    } else {
-      setApplied(0);
-      toast.error("That promo code isn't valid for this event");
+    if (!code) return;
+    setPromoBusy(true);
+    try {
+      const result = await validatePromoCode(code, eventId ?? null);
+      if (result.valid) {
+        setApplied({ type: result.type!, value: result.value });
+        const desc =
+          result.type === "percent"
+            ? `${result.value}% off this order`
+            : `${money(result.value)} off per ticket`;
+        toast.success(`Promo ${code} applied`, { description: desc });
+      } else {
+        setApplied(null);
+        toast.error("That promo code isn't valid for this event");
+      }
+    } catch {
+      toast.error("Could not validate that promo code");
+    } finally {
+      setPromoBusy(false);
     }
   };
 
@@ -225,8 +243,8 @@ export function CheckoutDialog({ open, onOpenChange, eventName, eventId, tier, q
               placeholder="PROMOCODE"
               className="h-11 rounded-xl bg-secondary/40 font-mono tracking-[0.14em]"
             />
-            <Button variant="glass" size="sm" className="h-11" onClick={applyPromo}>
-              Apply
+            <Button variant="glass" size="sm" className="h-11" onClick={() => void applyPromo()} disabled={promoBusy}>
+              {promoBusy ? <Loader2 className="animate-spin" /> : "Apply"}
             </Button>
           </div>
         </div>
